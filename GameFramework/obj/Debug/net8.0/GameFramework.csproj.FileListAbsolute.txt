@@ -1,0 +1,9 @@
+D:\GodotProject\framework\GameFramework\obj\Debug\net8.0\GameFramework.GeneratedMSBuildEditorConfig.editorconfig
+D:\GodotProject\framework\GameFramework\obj\Debug\net8.0\GameFramework.csproj.CoreCompileInputs.cache
+D:\GodotProject\framework\GameFramework\bin\Debug\net8.0\GameFramework.deps.json
+D:\GodotProject\framework\GameFramework\bin\Debug\net8.0\GameFramework.dll
+D:\GodotProject\framework\GameFramework\bin\Debug\net8.0\GameFramework.pdb
+D:\GodotProject\framework\GameFramework\obj\Debug\net8.0\GameFramework.dll
+D:\GodotProject\framework\GameFramework\obj\Debug\net8.0\refint\GameFramework.dll
+D:\GodotProject\framework\GameFramework\obj\Debug\net8.0\GameFramework.pdb
+D:\GodotProject\framework\GameFramework\obj\Debug\net8.0\ref\GameFramework.dll
