@@ -7,3 +7,4 @@ D:\GodotProject\framework\GameFramework\obj\Debug\net8.0\GameFramework.dll
 D:\GodotProject\framework\GameFramework\obj\Debug\net8.0\refint\GameFramework.dll
 D:\GodotProject\framework\GameFramework\obj\Debug\net8.0\GameFramework.pdb
 D:\GodotProject\framework\GameFramework\obj\Debug\net8.0\ref\GameFramework.dll
+D:\GodotProject\framework\GameFramework\obj\Debug\net8.0\GameFramework.sourcelink.json

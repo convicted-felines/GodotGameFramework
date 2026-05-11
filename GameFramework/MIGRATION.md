@@ -2,7 +2,7 @@
 
 > 源仓库：https://github.com/EllanJiang/GameFramework  
 > 目标引擎：Godot 4.6（C# / net8.0）  
-> 最后更新：2026-05-07
+> 最后更新：2026-05-11
 
 ---
 
@@ -65,6 +65,38 @@ framework/
 
 ---
 
+## 适配层进度（`GodotGameFramework/`）
+
+### 已完成（第一优先级 + 核心 Helpers）
+
+| 文件 | 说明 |
+|------|------|
+| `Base/ShutdownType.cs` | 关闭类型枚举（None / Restart / Quit） |
+| `Base/GameFrameworkComponent.cs` | 所有框架 Node 的抽象基类，对应 `MonoBehaviour`，在 `_Ready` 注册到 `GameEntry` |
+| `Base/GameEntry.cs` | 静态服务定位器，管理所有 `GameFrameworkComponent` |
+| `Base/BaseComponent.cs` | 框架核心 Node：初始化所有 Helper，驱动 `GameFrameworkEntry.Update` / `Shutdown` |
+| `Utility/GodotLogHelper.cs` | `ILogHelper` → `GD.Print` / `GD.PushWarning` / `GD.PushError` |
+| `Utility/DefaultJsonHelper.cs` | `IJsonHelper` → `System.Text.Json` |
+| `Utility/DefaultCompressionHelper.cs` | `ICompressionHelper` → `System.IO.Compression.DeflateStream` |
+| `Utility/DefaultTextHelper.cs` | `ITextHelper` → `string.Format` |
+| `Event/EventComponent.cs` | 封装 `IEventManager`，提供 Subscribe / Fire / FireNow |
+| `Procedure/ProcedureComponent.cs` | 封装 `IProcedureManager`，通过 `[Export]` 配置流程列表和入口流程 |
+
+### 使用方式
+
+在 Godot 场景中创建如下 Node 树（顺序即 `_Ready` 执行顺序）：
+
+```
+GameFramework (Node)
+├── BaseComponent      # 必须最先初始化
+├── EventComponent
+└── ProcedureComponent # 最后调用 StartProcedures()
+```
+
+`BaseComponent` 的 `_Process` 会自动调用 `GameFrameworkEntry.Update`，无需手动驱动。
+
+---
+
 ## 待完成
 
 ### 适配层开发（`GodotGameFramework/`）
@@ -124,12 +156,12 @@ framework/
 │              Godot 游戏逻辑层                 │
 │         (Framework.csproj / Node 脚本)        │
 └────────────────┬────────────────────────────┘
-                 │ 调用
+				 │ 调用
 ┌────────────────▼────────────────────────────┐
 │          GodotGameFramework 适配层            │  ← 待开发
 │   实现各 IXxxHelper 接口，绑定 Godot API      │
 └────────────────┬────────────────────────────┘
-                 │ 实现接口
+				 │ 实现接口
 ┌────────────────▼────────────────────────────┐
 │         GameFramework 核心层                  │  ← 已完成
 │    纯 C# 逻辑，无任何引擎依赖，0 编译错误      │
