@@ -1,0 +1,26 @@
+[gd_scene format=3 uid="uid://ds73k2es8joda"]
+
+[ext_resource type="Script" uid="uid://djxwx0g31xj65" path="res://GodotGameFramework/Base/BaseComponent.cs" id="1_syaif"]
+[ext_resource type="Script" uid="uid://5fqdlcp863o1" path="res://GodotGameFramework/Event/EventComponent.cs" id="2_lkeb4"]
+[ext_resource type="Script" uid="uid://cl4lb1kqfjvag" path="res://GodotGameFramework/Procedure/ProcedureComponent.cs" id="3_2kaif"]
+[ext_resource type="Script" uid="uid://bsaf4euiy5utm" path="res://GodotGameFramework/Entity/EntityComponent.cs" id="4_ttdra"]
+[ext_resource type="Script" uid="uid://vw8rdmftwexa" path="res://GodotGameFramework/UI/UIComponent.cs" id="5_5dcsp"]
+
+[node name="GameEntry" type="Node3D" unique_id=1007060803]
+
+[node name="GameFramework" type="Node" parent="." unique_id=1206382738]
+
+[node name="BaseComponent" type="Node" parent="GameFramework" unique_id=134997338]
+script = ExtResource("1_syaif")
+
+[node name="EventComponent" type="Node" parent="GameFramework" unique_id=410933346]
+script = ExtResource("2_lkeb4")
+
+[node name="ProcedureComponent" type="Node" parent="GameFramework" unique_id=1843352324]
+script = ExtResource("3_2kaif")
+
+[node name="EntityComponent" type="Node" parent="GameFramework" unique_id=1405598650]
+script = ExtResource("4_ttdra")
+
+[node name="UIComponent" type="Node" parent="GameFramework" unique_id=1461927318]
+script = ExtResource("5_5dcsp")

@@ -2,7 +2,7 @@
 
 > 源仓库：https://github.com/EllanJiang/GameFramework  
 > 目标引擎：Godot 4.6（C# / net8.0）  
-> 最后更新：2026-05-11
+> 最后更新：2026-05-13
 
 ---
 
@@ -81,6 +81,14 @@ framework/
 | `Utility/DefaultTextHelper.cs` | `ITextHelper` → `string.Format` |
 | `Event/EventComponent.cs` | 封装 `IEventManager`，提供 Subscribe / Fire / FireNow |
 | `Procedure/ProcedureComponent.cs` | 封装 `IProcedureManager`，通过 `[Export]` 配置流程列表和入口流程 |
+| `Entity/EntityLogic.cs` | 实体逻辑基类（继承 Node + IEntity），用户实体脚本继承此类 |
+| `Entity/EntityGroupHelper.cs` | 实体组容器节点，每组独立挂载在 EntityComponent 下 |
+| `Entity/EntityHelper.cs` | PackedScene 实例化/创建/释放，将 Node 接入对象池管理 |
+| `Entity/EntityComponent.cs` | 封装 `IEntityManager`，[Export] 配置实体组，透传显示/隐藏/父子操作 |
+| `UI/UIFormLogic.cs` | UI 界面逻辑基类（继承 Control + IUIForm），根节点脚本，支持编辑器拖拽引用 |
+| `UI/UIGroupHelper.cs` | UI 组容器节点（CanvasLayer），`SetDepth` 映射到 `Layer` 属性控制渲染层级 |
+| `UI/UIFormHelper.cs` | PackedScene 实例化/创建/释放，强制要求根节点为 UIFormLogic（不做递归查找） |
+| `UI/UIComponent.cs` | 封装 `IUIManager`，[Export] 配置 UI 组及对象池参数，透传打开/关闭/激活操作 |
 
 ### 使用方式
 
@@ -126,14 +134,14 @@ GameFramework (Node)
 |------|------|---------------|
 | 资源加载 | `IResourceManager` / `ILoadResourceAgentHelper` | `ResourceLoader.Load` / `ResourceLoader.LoadThreadedRequest` |
 | 场景管理 | `ISceneManager` 适配 | `SceneTree.ChangeSceneToFile` / `SceneTree.ChangeSceneToPacked` |
-| 实体管理 | `IEntityHelper` / `IEntityGroupHelper` | `PackedScene.Instantiate`，挂到 `Node` 树 |
+| ~~实体管理~~ | ~~`IEntityHelper` / `IEntityGroupHelper`~~ | ✅ 已完成：`EntityComponent` / `EntityHelper` / `EntityLogic` |
 
 #### 第四优先级（音频与 UI）
 
 | 任务 | 接口 | Godot 对应 API |
 |------|------|---------------|
-| 音频播放 | `ISoundHelper` / `ISoundAgentHelper` | `AudioStreamPlayer` / `AudioStreamPlayer3D` |
-| UI 管理 | `IUIFormHelper` / `IUIGroupHelper` | `Control` 节点，`CanvasLayer` 分层 |
+| ~~音频播放~~ | `ISoundHelper` / `ISoundAgentHelper` | `AudioStreamPlayer` / `AudioStreamPlayer3D` |
+| ~~UI 管理~~ | ~~`IUIFormHelper` / `IUIGroupHelper`~~ | ✅ 已完成：`UIComponent` / `UIFormHelper` / `UIFormLogic` |
 | 本地化 | `ILocalizationHelper` | 解析语言表，替换 `Label.Text` |
 
 #### 第五优先级（调试与工具）
