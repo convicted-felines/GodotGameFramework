@@ -5,6 +5,7 @@
 [ext_resource type="Script" uid="uid://cl4lb1kqfjvag" path="res://GodotGameFramework/Procedure/ProcedureComponent.cs" id="3_2kaif"]
 [ext_resource type="Script" uid="uid://bsaf4euiy5utm" path="res://GodotGameFramework/Entity/EntityComponent.cs" id="4_ttdra"]
 [ext_resource type="Script" uid="uid://vw8rdmftwexa" path="res://GodotGameFramework/UI/UIComponent.cs" id="5_5dcsp"]
+[ext_resource type="Script" uid="uid://b38wkfr4xwo5" path="res://GodotGameFramework/DataTable/DataTableComponent.cs" id="6_lkeb4"]
 
 [node name="GameEntry" type="Node3D" unique_id=1007060803]
 
@@ -24,3 +25,6 @@ script = ExtResource("4_ttdra")
 
 [node name="UIComponent" type="Node" parent="GameFramework" unique_id=1461927318]
 script = ExtResource("5_5dcsp")
+
+[node name="DataTableComponent" type="Node" parent="GameFramework" unique_id=1732410837]
+script = ExtResource("6_lkeb4")

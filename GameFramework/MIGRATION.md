@@ -2,7 +2,7 @@
 
 > 源仓库：https://github.com/EllanJiang/GameFramework  
 > 目标引擎：Godot 4.6（C# / net8.0）  
-> 最后更新：2026-05-13
+> 最后更新：2026-05-15
 
 ---
 
@@ -17,14 +17,30 @@ framework/
 ├── GameFramework/            # 核心层：纯 C# 类库（引擎无关）
 │   └── GameFramework.csproj  # Microsoft.NET.Sdk / net8.0
 │
-└── GodotGameFramework/       # 适配层：Godot 具体实现（待开发）
+├── GodotGameFramework/       # 适配层：Godot 具体实现
+│   ├── Base/                 # 框架入口、组件基类
+│   ├── DataTable/            # DataTable 组件 + 默认 Helper
+│   ├── Entity/               # 实体组件 + Helper
+│   ├── Event/                # 事件组件
+│   ├── Procedure/            # 流程组件
+│   ├── UI/                   # UI 组件 + Helper
+│   └── Utility/              # Log / Json / Compression / Text Helper
+│
+└── Tools/
+	└── DataTableGenerator/   # 独立命令行工具（.NET 8 控制台程序）
+		├── DataTableGenerator.csproj
+		├── DataTableGenerator.cs    # Excel→TSV / TSV→bytes / TSV→C# 生成逻辑
+		├── DataTableProcessor.cs    # TSV 解析核心
+		├── DataTableProcessor.*.cs  # 各类型处理器（id/string/int/bool/float…）
+		└── Program.cs               # 命令行入口
 ```
 
 ### 关键配置说明
 
 - `GameFramework.csproj` 使用 `Microsoft.NET.Sdk`，不依赖 Godot，可独立编译
-- `Framework.csproj` 通过 `<ProjectReference>` 引用 GameFramework，同时用 `<Compile Remove="GameFramework\**">` 防止 Godot SDK 重复 glob 源文件
+- `Framework.csproj` 通过 `<ProjectReference>` 引用 GameFramework，同时用 `<Compile Remove="GameFramework\**">` 和 `<Compile Remove="Tools\**">` 防止 Godot SDK 重复 glob 源文件
 - `GenerateAssemblyInfo=false` 避免与原 `Properties/AssemblyInfo.cs` 冲突
+- `Tools/DataTableGenerator` 是独立的 `Microsoft.NET.Sdk` 控制台项目，依赖 `DocumentFormat.OpenXml` NuGet 包，与游戏项目完全隔离
 
 ---
 
@@ -89,6 +105,9 @@ framework/
 | `UI/UIGroupHelper.cs` | UI 组容器节点（CanvasLayer），`SetDepth` 映射到 `Layer` 属性控制渲染层级 |
 | `UI/UIFormHelper.cs` | PackedScene 实例化/创建/释放，强制要求根节点为 UIFormLogic（不做递归查找） |
 | `UI/UIComponent.cs` | 封装 `IUIManager`，[Export] 配置 UI 组及对象池参数，透传打开/关闭/激活操作 |
+| `DataTable/DataTableComponent.cs` | 封装 `IDataTableManager`，提供 `LoadDataTable<T>(path)` 直接从文件加载并解析 |
+| `DataTable/DefaultDataProviderHelper.cs` | 实现 `IDataProviderHelper<DataTableBase>`，支持二进制流和 TSV 字符串两种解析方式 |
+| `DataTable/DefaultDataTableHelper.cs` | `IDataTableHelper` 标记接口实现 |
 
 ### 使用方式
 
@@ -96,12 +115,64 @@ framework/
 
 ```
 GameFramework (Node)
-├── BaseComponent      # 必须最先初始化
+├── BaseComponent       # 必须最先初始化
 ├── EventComponent
-└── ProcedureComponent # 最后调用 StartProcedures()
+├── DataTableComponent  # 数据表组件
+└── ProcedureComponent  # 最后调用 StartProcedures()
 ```
 
 `BaseComponent` 的 `_Process` 会自动调用 `GameFrameworkEntry.Update`，无需手动驱动。
+
+**DataTable 加载示例：**
+
+```csharp
+// 在 Procedure 或其他组件中
+var dt = GameEntry.GetComponent<DataTableComponent>();
+
+// 从二进制文件加载（推荐，运行时性能最优）
+var heroTable = dt.LoadDataTable<DRHero>("res://DataTables/Bytes/Hero.bytes");
+
+// 按 Id 读取
+var hero = heroTable[1001];
+GD.Print(hero.Name, hero.Level);
+```
+
+### DataTableGenerator 工具使用方式
+
+```bash
+# 进入工具目录并构建
+cd Tools/DataTableGenerator
+dotnet build
+
+# 一键：Excel → TSV → .bytes + C# 代码
+dotnet run -- all GameData.xlsx \
+  --text   Assets/DataTables/Text   \
+  --bytes  Assets/DataTables/Bytes  \
+  --code   Assets/Scripts/DataTable \
+  --namespace MyGame
+
+# 分步执行
+dotnet run -- excel GameData.xlsx --text DataTables/Text  # 导出 Excel Sheet 为 TSV
+dotnet run -- bytes                                        # TSV → .bytes
+dotnet run -- code  --namespace MyGame                     # TSV → C# 代码
+```
+
+**TSV 文件格式（行索引从 0 开始）：**
+
+```
+# 第0行：列名（首列固定为注释列）
+# 第1行：列类型（id / int / string / bool / float / long / ...）
+# 第2行：默认值（可留空）
+# 第3行：列说明注释
+# 第4行起：数据行（首列以 # 开头的行为注释行，跳过）
+
+#注释   Id     Name    Level   Attack
+		id     string  int     float
+							   0
+		编号   名称    等级    攻击力
+1001    英雄1  15      25.5
+1002    英雄2  20      30.0
+```
 
 ---
 
@@ -111,49 +182,42 @@ GameFramework (Node)
 
 每个模块需要在 `GodotGameFramework/` 下实现对应的 Helper/Bridge 类，将 GameFramework 的接口绑定到 Godot API。
 
-#### 第一优先级（框架可运行的最低要求）
-
-| 任务 | 接口 | Godot 对应 API |
-|------|------|---------------|
-| 日志适配 | `ILogHelper` | `GD.Print` / `GD.PushError` |
-| 框架入口挂载 | `GameFrameworkEntry` | 继承 `Node`，在 `_Process` 中调用 `Update` |
-| 流程启动 | `ProcedureManager` + 首个 `ProcedureBase` | 配合入口 Node 初始化 |
+#### 第一优先级（框架可运行的最低要求）✅ 已全部完成
 
 #### 第二优先级（数据驱动）
 
-| 任务 | 接口 | Godot 对应 API / 说明 |
-|------|------|----------------------|
-| Config 加载 | `IConfigHelper` | 解析 `.json` / `.csv`，用 `FileAccess` 读取 |
-| DataTable 解析 | `IDataTableHelper` | 同上，按行解析为 `IDataRow` |
-| Setting 持久化 | `ISettingHelper` | `ConfigFile` 存取（替代 Unity `PlayerPrefs`） |
-| FileSystem 流 | `IFileSystemHelper` | `FileAccess` 实现 `FileSystemStream` |
+| 任务 | 接口 | Godot 对应 API / 说明 | 状态 |
+|------|------|----------------------|------|
+| ~~DataTable 组件~~ | ~~`IDataTableHelper` / `IDataProviderHelper`~~ | ✅ 已完成：`DataTableComponent` / `DefaultDataProviderHelper` | ✅ |
+| ~~DataTable 生成工具~~ | — | ✅ 已完成：`Tools/DataTableGenerator`（Excel→TSV→bytes+C#） | ✅ |
+| Config 加载 | `IConfigHelper` | 解析 `.json` / `.csv`，用 `FileAccess` 读取 | ⬜ |
+| Setting 持久化 | `ISettingHelper` | `ConfigFile` 存取（替代 Unity `PlayerPrefs`） | ⬜ |
+| FileSystem 流 | `IFileSystemHelper` | `FileAccess` 实现 `FileSystemStream` | ⬜ |
 
 #### 第三优先级（资源与场景）
 
-| 任务 | 接口 | Godot 对应 API |
-|------|------|---------------|
-| 资源加载 | `IResourceManager` / `ILoadResourceAgentHelper` | `ResourceLoader.Load` / `ResourceLoader.LoadThreadedRequest` |
-| 场景管理 | `ISceneManager` 适配 | `SceneTree.ChangeSceneToFile` / `SceneTree.ChangeSceneToPacked` |
-| ~~实体管理~~ | ~~`IEntityHelper` / `IEntityGroupHelper`~~ | ✅ 已完成：`EntityComponent` / `EntityHelper` / `EntityLogic` |
+| 任务 | 接口 | Godot 对应 API | 状态 |
+|------|------|---------------|------|
+| 资源加载 | `IResourceManager` / `ILoadResourceAgentHelper` | `ResourceLoader.Load` / `ResourceLoader.LoadThreadedRequest` | ⬜ |
+| 场景管理 | `ISceneManager` 适配 | `SceneTree.ChangeSceneToFile` / `SceneTree.ChangeSceneToPacked` | ⬜ |
+| ~~实体管理~~ | ~~`IEntityHelper` / `IEntityGroupHelper`~~ | ✅ 已完成：`EntityComponent` / `EntityHelper` / `EntityLogic` | ✅ |
 
 #### 第四优先级（音频与 UI）
 
-| 任务 | 接口 | Godot 对应 API |
-|------|------|---------------|
-| ~~音频播放~~ | `ISoundHelper` / `ISoundAgentHelper` | `AudioStreamPlayer` / `AudioStreamPlayer3D` |
-| ~~UI 管理~~ | ~~`IUIFormHelper` / `IUIGroupHelper`~~ | ✅ 已完成：`UIComponent` / `UIFormHelper` / `UIFormLogic` |
-| 本地化 | `ILocalizationHelper` | 解析语言表，替换 `Label.Text` |
+| 任务 | 接口 | Godot 对应 API | 状态 |
+|------|------|---------------|------|
+| 音频播放 | `ISoundHelper` / `ISoundAgentHelper` | `AudioStreamPlayer` / `AudioStreamPlayer3D` | ⬜ |
+| ~~UI 管理~~ | ~~`IUIFormHelper` / `IUIGroupHelper`~~ | ✅ 已完成：`UIComponent` / `UIFormHelper` / `UIFormLogic` | ✅ |
+| 本地化 | `ILocalizationHelper` | 解析语言表，替换 `Label.Text` | ⬜ |
 
-#### 第五优先级（调试与工具）
+#### 第五优先级（调试与网络）
 
-| 任务 | 说明 |
-|------|------|
-| Debugger 窗口 | 用 Godot `Control` 实现 `IDebuggerWindow`，在编辑器内叠层显示 |
-| 网络 Helper | 实现 `INetworkChannelHelper`（粘包协议、心跳间隔按项目定） |
-| 下载 Helper | 实现 `IDownloadAgentHelper`（可用 `HttpClient` 或 Godot `HTTPRequest`） |
-| WebRequest Helper | 实现 `IWebRequestAgentHelper`（推荐 `HttpClient`） |
-| Json Helper | 实现 `Utility.IJsonHelper`（推荐 `System.Text.Json`） |
-| 压缩 Helper | 实现 `Utility.ICompressionHelper`（推荐 `System.IO.Compression`） |
+| 任务 | 说明 | 状态 |
+|------|------|------|
+| Debugger 窗口 | 用 Godot `Control` 实现 `IDebuggerWindow`，在编辑器内叠层显示 | ⬜ |
+| 网络 Helper | 实现 `INetworkChannelHelper`（粘包协议、心跳间隔按项目定） | ⬜ |
+| 下载 Helper | 实现 `IDownloadAgentHelper`（可用 `HttpClient` 或 Godot `HTTPRequest`） | ⬜ |
+| WebRequest Helper | 实现 `IWebRequestAgentHelper`（推荐 `HttpClient`） | ⬜ |
 
 ---
 
@@ -166,13 +230,20 @@ GameFramework (Node)
 └────────────────┬────────────────────────────┘
 				 │ 调用
 ┌────────────────▼────────────────────────────┐
-│          GodotGameFramework 适配层            │  ← 待开发
+│          GodotGameFramework 适配层            │  ← 持续开发中
 │   实现各 IXxxHelper 接口，绑定 Godot API      │
+│   DataTable / Entity / UI / Event 已完成     │
 └────────────────┬────────────────────────────┘
 				 │ 实现接口
 ┌────────────────▼────────────────────────────┐
-│         GameFramework 核心层                  │  ← 已完成
+│         GameFramework 核心层                  │  ← 已完成（0 修改）
 │    纯 C# 逻辑，无任何引擎依赖，0 编译错误      │
+└─────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────┐
+│         Tools/DataTableGenerator             │  ← 独立命令行工具
+│  Excel(.xlsx) → TSV → .bytes + C# IDataRow  │
+│  依赖 DocumentFormat.OpenXml，与游戏项目隔离  │
 └─────────────────────────────────────────────┘
 ```
 
