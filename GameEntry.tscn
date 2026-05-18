@@ -2,10 +2,14 @@
 
 [ext_resource type="Script" uid="uid://djxwx0g31xj65" path="res://GodotGameFramework/Base/BaseComponent.cs" id="1_syaif"]
 [ext_resource type="Script" uid="uid://5fqdlcp863o1" path="res://GodotGameFramework/Event/EventComponent.cs" id="2_lkeb4"]
+[ext_resource type="Script" uid="uid://c0mspmne23oa" path="res://GodotGameFramework/Config/ConfigComponent.cs" id="2_wuog5"]
 [ext_resource type="Script" uid="uid://cl4lb1kqfjvag" path="res://GodotGameFramework/Procedure/ProcedureComponent.cs" id="3_2kaif"]
+[ext_resource type="Script" uid="uid://dtj3ietqtpn7p" path="res://GodotGameFramework/FileSystem/FileSystemComponent.cs" id="4_5ehnu"]
 [ext_resource type="Script" uid="uid://bsaf4euiy5utm" path="res://GodotGameFramework/Entity/EntityComponent.cs" id="4_ttdra"]
 [ext_resource type="Script" uid="uid://vw8rdmftwexa" path="res://GodotGameFramework/UI/UIComponent.cs" id="5_5dcsp"]
 [ext_resource type="Script" uid="uid://b38wkfr4xwo5" path="res://GodotGameFramework/DataTable/DataTableComponent.cs" id="6_lkeb4"]
+[ext_resource type="Script" uid="uid://bpp2brj3r1qbl" path="res://GodotGameFramework/Resource/ResourceComponent.cs" id="9_5xj71"]
+[ext_resource type="Script" uid="uid://dst66iclrgixy" path="res://GodotGameFramework/Setting/SettingComponent.cs" id="10_mvr3t"]
 
 [node name="GameEntry" type="Node3D" unique_id=1007060803]
 
@@ -14,8 +18,14 @@
 [node name="BaseComponent" type="Node" parent="GameFramework" unique_id=134997338]
 script = ExtResource("1_syaif")
 
+[node name="ConfigComponent" type="Node" parent="GameFramework" unique_id=143604383]
+script = ExtResource("2_wuog5")
+
 [node name="EventComponent" type="Node" parent="GameFramework" unique_id=410933346]
 script = ExtResource("2_lkeb4")
+
+[node name="FileSystemConponent" type="Node" parent="GameFramework" unique_id=177277223]
+script = ExtResource("4_5ehnu")
 
 [node name="EntityComponent" type="Node" parent="GameFramework" unique_id=1405598650]
 script = ExtResource("4_ttdra")
@@ -28,3 +38,9 @@ script = ExtResource("6_lkeb4")
 
 [node name="ProcedureComponent" type="Node" parent="GameFramework" unique_id=1843352324]
 script = ExtResource("3_2kaif")
+
+[node name="ResourceComponent" type="Node" parent="GameFramework" unique_id=539364055]
+script = ExtResource("9_5xj71")
+
+[node name="SettingComponent" type="Node" parent="GameFramework" unique_id=1959219470]
+script = ExtResource("10_mvr3t")

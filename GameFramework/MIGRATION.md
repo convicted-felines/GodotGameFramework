@@ -114,6 +114,13 @@ framework/
 | `Resource/GodotResourceGroup.cs` | `IResourceGroup` 元数据容器（Godot 资源始终就绪） |
 | `Resource/GodotResourceGroupCollection.cs` | `IResourceGroupCollection` 聚合视图 |
 | `Resource/ResourceComponent.cs` | 封装 `GodotResourceManager`，`[Export]` 配置模式/Agent 数/路径，`_Process` 驱动异步轮询 |
+| `Config/DefaultConfigHelper.cs` | `IConfigHelper` + `IDataProviderHelper<IConfigManager>`，支持 TSV（`Key\tValue`）和 JSON 扁平对象两种格式 |
+| `Config/ConfigComponent.cs` | 封装 `IConfigManager`，`LoadConfig(path)` 同步读取 `res://`/`user://` 配置文件 |
+| `Setting/DefaultSettingHelper.cs` | `ISettingHelper`，使用 Godot `ConfigFile` 持久化到 `user://settings.cfg`，对象值 JSON 序列化 |
+| `Setting/SettingComponent.cs` | 封装 `ISettingManager`，`_Ready` 自动加载，`_ExitTree` 自动保存，`[Export]` 可配置路径 |
+| `FileSystem/GodotFileSystemStream.cs` | 继承 `FileSystemStream`，将 `user://`/`res://` 解析为绝对路径后用 `System.IO.FileStream` 操作 |
+| `FileSystem/GodotFileSystemHelper.cs` | `IFileSystemHelper`，工厂方法创建 `GodotFileSystemStream` |
+| `FileSystem/FileSystemComponent.cs` | 封装 `IFileSystemManager`，管理虚拟文件系统包（`.vfs`）的创建/加载/销毁 |
 
 ### 使用方式
 
@@ -124,6 +131,9 @@ GameFramework (Node)
 ├── BaseComponent       # 必须最先初始化
 ├── EventComponent
 ├── ResourceComponent   # 资源组件（Entity/UI 组件依赖，需在它们之前）
+├── ConfigComponent     # 全局只读配置（TSV / JSON）
+├── SettingComponent    # 玩家持久化设置（user://settings.cfg）
+├── FileSystemComponent # 虚拟文件系统包管理
 ├── DataTableComponent  # 数据表组件
 └── ProcedureComponent  # 最后调用 StartProcedures()
 ```
@@ -142,6 +152,60 @@ var heroTable = dt.LoadDataTable<DRHero>("res://DataTables/Bytes/Hero.bytes");
 // 按 Id 读取
 var hero = heroTable[1001];
 GD.Print(hero.Name, hero.Level);
+```
+
+**Config 加载示例：**
+
+```csharp
+var cfg = GameEntry.GetComponent<ConfigComponent>();
+
+// TSV 格式（res://Configs/game.tsv）：
+//   # 注释行
+//   MaxLevel\t100
+//   ServerAddr\t127.0.0.1
+// JSON 格式（res://Configs/game.json）：
+//   {"MaxLevel": 100, "ServerAddr": "127.0.0.1"}
+cfg.LoadConfig("res://Configs/game.json");
+
+int maxLevel = cfg.GetInt("MaxLevel");
+string addr  = cfg.GetString("ServerAddr", "localhost");
+```
+
+**Setting 持久化示例：**
+
+```csharp
+var setting = GameEntry.GetComponent<SettingComponent>();
+
+// 写入（自动在 _ExitTree 保存；也可手动调用 Save）
+setting.SetInt("MusicVolume", 80);
+setting.SetBool("Fullscreen", true);
+setting.SetObject("PlayerProfile", new PlayerProfile { Name = "Hero" });
+
+// 读取（带默认值）
+int vol        = setting.GetInt("MusicVolume", 100);
+bool fullscreen = setting.GetBool("Fullscreen", false);
+var profile    = setting.GetObject<PlayerProfile>("PlayerProfile");
+```
+
+**FileSystem 虚拟包示例：**
+
+```csharp
+var fs = GameEntry.GetComponent<FileSystemComponent>();
+
+// 创建新包（写入模式）
+IFileSystem vfs = fs.CreateFileSystem("user://data.vfs",
+	FileSystemAccess.ReadWrite, maxFileCount: 128, maxBlockCount: 256);
+
+// 写入文件
+byte[] data = System.Text.Encoding.UTF8.GetBytes("Hello VFS");
+vfs.WriteFile("greeting.txt", data);
+
+// 销毁（关闭句柄，保留物理文件）
+fs.DestroyFileSystem(vfs);
+
+// 加载已有包（只读）
+IFileSystem loaded = fs.LoadFileSystem("user://data.vfs", FileSystemAccess.Read);
+byte[] result = loaded.ReadFile("greeting.txt");
 ```
 
 **Resource 加载示例：**
@@ -228,9 +292,9 @@ dotnet run -- code  --namespace MyGame                     # TSV → C# 代码
 |------|------|----------------------|------|
 | ~~DataTable 组件~~ | ~~`IDataTableHelper` / `IDataProviderHelper`~~ | ✅ 已完成：`DataTableComponent` / `DefaultDataProviderHelper` | ✅ |
 | ~~DataTable 生成工具~~ | — | ✅ 已完成：`Tools/DataTableGenerator`（Excel→TSV→bytes+C#） | ✅ |
-| Config 加载 | `IConfigHelper` | 解析 `.json` / `.csv`，用 `FileAccess` 读取 | ⬜ |
-| Setting 持久化 | `ISettingHelper` | `ConfigFile` 存取（替代 Unity `PlayerPrefs`） | ⬜ |
-| FileSystem 流 | `IFileSystemHelper` | `FileAccess` 实现 `FileSystemStream` | ⬜ |
+| ~~Config 加载~~ | ~~`IConfigHelper`~~ | ✅ 已完成：`ConfigComponent` / `DefaultConfigHelper`（JSON+TSV） | ✅ |
+| ~~Setting 持久化~~ | ~~`ISettingHelper`~~ | ✅ 已完成：`SettingComponent` / `DefaultSettingHelper`（Godot `ConfigFile`） | ✅ |
+| ~~FileSystem 流~~ | ~~`IFileSystemHelper`~~ | ✅ 已完成：`FileSystemComponent` / `GodotFileSystemHelper` / `GodotFileSystemStream` | ✅ |
 
 #### 第三优先级（资源与场景）
 

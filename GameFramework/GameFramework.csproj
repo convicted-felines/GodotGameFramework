@@ -8,4 +8,10 @@
     <LangVersion>latest</LangVersion>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
+  <ItemGroup>
+    <!-- 允许 Godot 适配层访问 protected internal 成员（如 FileSystemStream） -->
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+      <_Parameter1>Framework</_Parameter1>
+    </AssemblyAttribute>
+  </ItemGroup>
 </Project>
