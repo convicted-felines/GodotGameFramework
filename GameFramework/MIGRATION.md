@@ -108,6 +108,12 @@ framework/
 | `DataTable/DataTableComponent.cs` | 封装 `IDataTableManager`，提供 `LoadDataTable<T>(path)` 直接从文件加载并解析 |
 | `DataTable/DefaultDataProviderHelper.cs` | 实现 `IDataProviderHelper<DataTableBase>`，支持二进制流和 TSV 字符串两种解析方式 |
 | `DataTable/DefaultDataTableHelper.cs` | `IDataTableHelper` 标记接口实现 |
+| `Resource/GodotResourceManager.cs` | 直接实现 `IResourceManager`，PackageMode（`res://`）+ UpdatableMode（`user://` + `.pck` 热更） |
+| `Resource/GodotLoadResourceAgentHelper.cs` | `ILoadResourceAgentHelper`，驱动 `LoadThreadedRequest` 异步流水线，含逐帧轮询 |
+| `Resource/GodotResourceHelper.cs` | `IResourceHelper`，`FileAccess` 读字节 + additive 场景卸载 + 资源释放 |
+| `Resource/GodotResourceGroup.cs` | `IResourceGroup` 元数据容器（Godot 资源始终就绪） |
+| `Resource/GodotResourceGroupCollection.cs` | `IResourceGroupCollection` 聚合视图 |
+| `Resource/ResourceComponent.cs` | 封装 `GodotResourceManager`，`[Export]` 配置模式/Agent 数/路径，`_Process` 驱动异步轮询 |
 
 ### 使用方式
 
@@ -117,6 +123,7 @@ framework/
 GameFramework (Node)
 ├── BaseComponent       # 必须最先初始化
 ├── EventComponent
+├── ResourceComponent   # 资源组件（Entity/UI 组件依赖，需在它们之前）
 ├── DataTableComponent  # 数据表组件
 └── ProcedureComponent  # 最后调用 StartProcedures()
 ```
@@ -135,6 +142,37 @@ var heroTable = dt.LoadDataTable<DRHero>("res://DataTables/Bytes/Hero.bytes");
 // 按 Id 读取
 var hero = heroTable[1001];
 GD.Print(hero.Name, hero.Level);
+```
+
+**Resource 加载示例：**
+
+```csharp
+// PackedScene 异步加载
+var res = GameEntry.GetComponent<ResourceComponent>();
+res.LoadAsset("res://Prefabs/Hero.tscn",
+	new LoadAssetCallbacks(
+		onSuccess: (name, asset, duration, userData) => {
+			var scene = (PackedScene)asset;
+			AddChild(scene.Instantiate());
+		},
+		onFailure: (name, status, msg, userData) => {
+			GD.PrintErr($"Load failed: {msg}");
+		}
+	)
+);
+
+// 二进制文件异步加载
+res.LoadBinary("res://Data/config.bytes",
+	new LoadBinaryCallbacks(
+		(name, bytes, duration, userData) => { /* 处理 bytes */ }
+	)
+);
+
+// PackageMode 初始化（自动，无需手动调用）
+// UpdatableMode 热更示例：
+res.ApplyResources("user://patch_v2.pck",
+	(packPath, success) => GD.Print($"Patch applied: {success}")
+);
 ```
 
 ### DataTableGenerator 工具使用方式
@@ -198,7 +236,7 @@ dotnet run -- code  --namespace MyGame                     # TSV → C# 代码
 
 | 任务 | 接口 | Godot 对应 API | 状态 |
 |------|------|---------------|------|
-| 资源加载 | `IResourceManager` / `ILoadResourceAgentHelper` | `ResourceLoader.Load` / `ResourceLoader.LoadThreadedRequest` | ⬜ |
+| 资源加载 | `IResourceManager` / `ILoadResourceAgentHelper` | `ResourceLoader.Load` / `ResourceLoader.LoadThreadedRequest` | ✅ |
 | 场景管理 | `ISceneManager` 适配 | `SceneTree.ChangeSceneToFile` / `SceneTree.ChangeSceneToPacked` | ⬜ |
 | ~~实体管理~~ | ~~`IEntityHelper` / `IEntityGroupHelper`~~ | ✅ 已完成：`EntityComponent` / `EntityHelper` / `EntityLogic` | ✅ |
 

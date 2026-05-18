@@ -107,7 +107,7 @@ namespace GodotGameFramework
             m_EntityManager.SetObjectPoolManager(objectPoolManager);
 
             // 注入资源管理器（可选：ResourceComponent 尚未实现时跳过）
-            var resourceManager = GameFrameworkEntry.GetModule<IResourceManager>();
+            var resourceManager = ResourceComponent.Instance;
             if (resourceManager != null)
             {
                 m_EntityManager.SetResourceManager(resourceManager);

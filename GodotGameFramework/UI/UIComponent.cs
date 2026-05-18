@@ -138,7 +138,7 @@ namespace GodotGameFramework
             m_UIManager.InstancePriority = InstancePriority;
 
             // 注入资源管理器（可选）
-            var resourceManager = GameFrameworkEntry.GetModule<IResourceManager>();
+            var resourceManager = ResourceComponent.Instance;
             if (resourceManager != null)
             {
                 m_UIManager.SetResourceManager(resourceManager);

@@ -47,6 +47,45 @@ namespace GameFramework
         }
 
         /// <summary>
+        /// 注册一个已创建的游戏框架模块（用于注入自定义实现替代自动创建的默认模块）。
+        /// 若相同类型的模块已存在则替换之。
+        /// </summary>
+        /// <param name="module">要注册的模块实例。</param>
+        public static void RegisterModule(GameFrameworkModule module)
+        {
+            if (module == null)
+            {
+                throw new GameFrameworkException("Module is invalid.");
+            }
+
+            // 移除已有的同类型模块
+            LinkedListNode<GameFrameworkModule> current = s_GameFrameworkModules.First;
+            while (current != null)
+            {
+                if (current.Value.GetType() == module.GetType())
+                {
+                    s_GameFrameworkModules.Remove(current);
+                    break;
+                }
+                current = current.Next;
+            }
+
+            // 按优先级插入
+            current = s_GameFrameworkModules.First;
+            while (current != null)
+            {
+                if (module.Priority > current.Value.Priority)
+                    break;
+                current = current.Next;
+            }
+
+            if (current != null)
+                s_GameFrameworkModules.AddBefore(current, module);
+            else
+                s_GameFrameworkModules.AddLast(module);
+        }
+
+        /// <summary>
         /// 获取游戏框架模块。
         /// </summary>
         /// <typeparam name="T">要获取的游戏框架模块类型。</typeparam>
@@ -63,6 +102,13 @@ namespace GameFramework
             if (!interfaceType.FullName.StartsWith("GameFramework.", StringComparison.Ordinal))
             {
                 throw new GameFrameworkException(Utility.Text.Format("You must get a Game Framework module, but '{0}' is not.", interfaceType.FullName));
+            }
+
+            // 先查找已注册的、实现了该接口的模块（允许外部注入替代实现）
+            foreach (GameFrameworkModule module in s_GameFrameworkModules)
+            {
+                if (interfaceType.IsInstanceOfType(module))
+                    return module as T;
             }
 
             string moduleName = Utility.Text.Format("{0}.{1}", interfaceType.Namespace, interfaceType.Name.Substring(1));
