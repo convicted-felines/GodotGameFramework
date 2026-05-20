@@ -2,7 +2,7 @@
 
 > 源仓库：https://github.com/EllanJiang/GameFramework  
 > 目标引擎：Godot 4.6（C# / net8.0）  
-> 最后更新：2026-05-15
+> 最后更新：2026-05-20
 
 ---
 
@@ -301,25 +301,25 @@ dotnet run -- code  --namespace MyGame                     # TSV → C# 代码
 | 任务 | 接口 | Godot 对应 API | 状态 |
 |------|------|---------------|------|
 | 资源加载 | `IResourceManager` / `ILoadResourceAgentHelper` | `ResourceLoader.Load` / `ResourceLoader.LoadThreadedRequest` | ✅ |
-| 场景管理 | `ISceneManager` 适配 | `SceneTree.ChangeSceneToFile` / `SceneTree.ChangeSceneToPacked` | ⬜ |
+| ~~场景管理~~ | ~~`ISceneManager` 适配~~ | ✅ 已完成：`SceneComponent`（基于 ResourceComponent additive 加载） | ✅ |
 | ~~实体管理~~ | ~~`IEntityHelper` / `IEntityGroupHelper`~~ | ✅ 已完成：`EntityComponent` / `EntityHelper` / `EntityLogic` | ✅ |
 
 #### 第四优先级（音频与 UI）
 
 | 任务 | 接口 | Godot 对应 API | 状态 |
 |------|------|---------------|------|
-| 音频播放 | `ISoundHelper` / `ISoundAgentHelper` | `AudioStreamPlayer` / `AudioStreamPlayer3D` | ⬜ |
+| ~~音频播放~~ | ~~`ISoundHelper` / `ISoundAgentHelper`~~ | ✅ 已完成：`SoundComponent` / `SoundAgentHelper`（AudioStreamPlayer + Tween 淡入淡出） | ✅ |
 | ~~UI 管理~~ | ~~`IUIFormHelper` / `IUIGroupHelper`~~ | ✅ 已完成：`UIComponent` / `UIFormHelper` / `UIFormLogic` | ✅ |
-| 本地化 | `ILocalizationHelper` | 解析语言表，替换 `Label.Text` | ⬜ |
+| ~~本地化~~ | ~~`ILocalizationHelper`~~ | ✅ 已完成：`LocalizationComponent` / `GodotLocalizationHelper`（TSV+JSON 双格式） | ✅ |
 
 #### 第五优先级（调试与网络）
 
 | 任务 | 说明 | 状态 |
 |------|------|------|
 | Debugger 窗口 | 用 Godot `Control` 实现 `IDebuggerWindow`，在编辑器内叠层显示 | ⬜ |
-| 网络 Helper | 实现 `INetworkChannelHelper`（粘包协议、心跳间隔按项目定） | ⬜ |
-| 下载 Helper | 实现 `IDownloadAgentHelper`（可用 `HttpClient` 或 Godot `HTTPRequest`） | ⬜ |
-| WebRequest Helper | 实现 `IWebRequestAgentHelper`（推荐 `HttpClient`） | ⬜ |
+| ~~网络 Helper~~ | ~~实现 `INetworkChannelHelper`（粘包协议、心跳间隔按项目定）~~ | ✅ 已完成：`DefaultNetworkChannelHelper`（4 字节长度前缀协议，可继承扩展） + `NetworkComponent` | ✅ |
+| ~~下载 Helper~~ | ~~实现 `IDownloadAgentHelper`（可用 `HttpClient` 或 Godot `HTTPRequest`）~~ | ✅ 已完成：`HttpDownloadAgentHelper`（HttpClient，支持 Range 断点续传）+ `DownloadComponent` | ✅ |
+| ~~WebRequest Helper~~ | ~~实现 `IWebRequestAgentHelper`（推荐 `HttpClient`）~~ | ✅ 已完成：`HttpWebRequestAgentHelper`（GET/POST）+ `WebRequestComponent` | ✅ |
 
 ---
 
@@ -332,9 +332,11 @@ dotnet run -- code  --namespace MyGame                     # TSV → C# 代码
 └────────────────┬────────────────────────────┘
 				 │ 调用
 ┌────────────────▼────────────────────────────┐
-│          GodotGameFramework 适配层            │  ← 持续开发中
+│          GodotGameFramework 适配层            │  ← 持续开发中（Debugger 除外已全部完成）
 │   实现各 IXxxHelper 接口，绑定 Godot API      │
-│   DataTable / Entity / UI / Event 已完成     │
+│   DataTable / Entity / UI / Event / Sound   │
+│   Scene / Localization / Network / Download │
+│   WebRequest / Config / Setting / FileSystem│
 └────────────────┬────────────────────────────┘
 				 │ 实现接口
 ┌────────────────▼────────────────────────────┐
