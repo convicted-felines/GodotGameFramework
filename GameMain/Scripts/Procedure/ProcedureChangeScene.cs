@@ -7,6 +7,7 @@ using GameFramework;
 using GameFramework.Fsm;
 using GameFramework.Procedure;
 using GameFramework.Scene;
+using GodotGameFramework;
 using System;
 
 namespace GameMain
@@ -43,7 +44,7 @@ namespace GameMain
             }
 
             // 读取目标场景 ID
-            int nextSceneId = procedureOwner.GetData<GameFramework.Variable.VarInt32>("NextSceneId");
+            int nextSceneId = procedureOwner.GetData<VarInt32>("NextSceneId");
             m_ChangeToMenu = nextSceneId == MenuSceneId;
 
             // TODO: 从数据表中查找场景资源路径，此处先用占位路径

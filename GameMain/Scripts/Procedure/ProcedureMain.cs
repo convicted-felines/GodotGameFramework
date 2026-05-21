@@ -61,7 +61,7 @@ namespace GameMain
                 m_GotoMenuDelay += elapseSeconds;
                 if (m_GotoMenuDelay >= GameOverDelayedSeconds)
                 {
-                    procedureOwner.SetData<GameFramework.Variable.VarInt32>("NextSceneId", ProcedureChangeScene.MenuSceneId);
+                    procedureOwner.SetData<GodotGameFramework.VarInt32>("NextSceneId", ProcedureChangeScene.MenuSceneId);
                     ChangeState<ProcedureChangeScene>(procedureOwner);
                 }
             }

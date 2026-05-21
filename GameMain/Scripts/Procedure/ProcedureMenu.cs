@@ -50,7 +50,7 @@ namespace GameMain
                 return;
 
             // 设置目标场景 ID 后切换到 ChangeScene 流程
-            // procedureOwner.SetData<GameFramework.Variable.VarInt32>("NextSceneId", GameSceneId);
+            // procedureOwner.SetData<GodotGameFramework.VarInt32>("NextSceneId", GameSceneId);
             ChangeState<ProcedureChangeScene>(procedureOwner);
         }
     }
