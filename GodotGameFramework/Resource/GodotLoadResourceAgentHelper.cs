@@ -28,7 +28,7 @@ namespace GodotGameFramework
     ///   LoadAsset(resource, assetName, assetType, isScene)
     ///     → 在 Godot 中 resource 即是最终资源，直接触发 LoadComplete
     /// </summary>
-    public sealed class GodotLoadResourceAgentHelper : ILoadResourceAgentHelper
+    public sealed class GodotLoadResourceAgentHelper : LoadResourceAgentHelperBase
     {
         // ── 状态机 ─────────────────────────────────────────────────────────────
 
@@ -39,12 +39,12 @@ namespace GodotGameFramework
 
         // ── 事件 ───────────────────────────────────────────────────────────────
 
-        public event EventHandler<LoadResourceAgentHelperUpdateEventArgs> LoadResourceAgentHelperUpdate;
-        public event EventHandler<LoadResourceAgentHelperReadFileCompleteEventArgs> LoadResourceAgentHelperReadFileComplete;
-        public event EventHandler<LoadResourceAgentHelperReadBytesCompleteEventArgs> LoadResourceAgentHelperReadBytesComplete;
-        public event EventHandler<LoadResourceAgentHelperParseBytesCompleteEventArgs> LoadResourceAgentHelperParseBytesComplete;
-        public event EventHandler<LoadResourceAgentHelperLoadCompleteEventArgs> LoadResourceAgentHelperLoadComplete;
-        public event EventHandler<LoadResourceAgentHelperErrorEventArgs> LoadResourceAgentHelperError;
+        public override event EventHandler<LoadResourceAgentHelperUpdateEventArgs> LoadResourceAgentHelperUpdate;
+        public override event EventHandler<LoadResourceAgentHelperReadFileCompleteEventArgs> LoadResourceAgentHelperReadFileComplete;
+        public override event EventHandler<LoadResourceAgentHelperReadBytesCompleteEventArgs> LoadResourceAgentHelperReadBytesComplete;
+        public override event EventHandler<LoadResourceAgentHelperParseBytesCompleteEventArgs> LoadResourceAgentHelperParseBytesComplete;
+        public override event EventHandler<LoadResourceAgentHelperLoadCompleteEventArgs> LoadResourceAgentHelperLoadComplete;
+        public override event EventHandler<LoadResourceAgentHelperErrorEventArgs> LoadResourceAgentHelperError;
 
         // ── ILoadResourceAgentHelper ───────────────────────────────────────────
 
@@ -52,7 +52,7 @@ namespace GodotGameFramework
         /// 发起 Godot 后台线程加载（对应 AB 体系的 ReadFile 阶段）。
         /// Godot 的 ResourceLoader 本身管理依赖，无需手动处理。
         /// </summary>
-        public void ReadFile(string fullPath)
+        public override void ReadFile(string fullPath)
         {
             if (m_State != AgentState.Idle)
             {
@@ -75,7 +75,7 @@ namespace GodotGameFramework
         /// FileSystem 版本 ReadFile：读出字节再交 ParseBytes 处理。
         /// Godot 的 FileSystem 虚文件系统不适用，退化为按名字读磁盘文件。
         /// </summary>
-        public void ReadFile(IFileSystem fileSystem, string name)
+        public override void ReadFile(IFileSystem fileSystem, string name)
         {
             // 框架 FileSystem 在 Godot 侧未实现，按磁盘路径降级处理
             ReadFile(name);
@@ -84,7 +84,7 @@ namespace GodotGameFramework
         /// <summary>
         /// 异步读取原始字节（供 DataTable 等二进制资源使用）。
         /// </summary>
-        public void ReadBytes(string fullPath)
+        public override void ReadBytes(string fullPath)
         {
             if (m_State != AgentState.Idle)
             {
@@ -115,7 +115,7 @@ namespace GodotGameFramework
             });
         }
 
-        public void ReadBytes(IFileSystem fileSystem, string name)
+        public override void ReadBytes(IFileSystem fileSystem, string name)
         {
             ReadBytes(name);
         }
@@ -123,7 +123,7 @@ namespace GodotGameFramework
         /// <summary>
         /// 将字节流解析为 Godot Resource（目前仅透传字节，实际资源已由 ReadFile 完成加载）。
         /// </summary>
-        public void ParseBytes(byte[] bytes)
+        public override void ParseBytes(byte[] bytes)
         {
             // Godot 侧的二进制资源（.bytes）通过 ReadBytes 直接交给上层使用，
             // ParseBytes 在 AB 体系里是把 AB 字节解码为 AssetBundle 对象，
@@ -136,7 +136,7 @@ namespace GodotGameFramework
         /// <summary>
         /// 加载资产（在 Godot 侧 resource 本身就是最终资源，直接触发完成）。
         /// </summary>
-        public void LoadAsset(object resource, string assetName, Type assetType, bool isScene)
+        public override void LoadAsset(object resource, string assetName, Type assetType, bool isScene)
         {
             // resource 即 Godot.Resource（PackedScene / Texture2D / AudioStream …）
             var args = LoadResourceAgentHelperLoadCompleteEventArgs.Create(resource);
@@ -147,7 +147,7 @@ namespace GodotGameFramework
         /// <summary>
         /// 重置 Agent 状态（框架在每次任务结束后调用）。
         /// </summary>
-        public void Reset()
+        public override void Reset()
         {
             m_State = AgentState.Idle;
             m_LoadingPath = null;

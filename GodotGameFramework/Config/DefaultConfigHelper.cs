@@ -11,9 +11,9 @@ namespace GodotGameFramework
     ///   • TSV（制表符分隔）：每行 "Key\tValue"，# 开头为注释行。
     ///   • JSON 对象：{"Key": "Value", ...}，值统一作为字符串写入 ConfigManager.AddConfig。
     /// </summary>
-    public sealed class DefaultConfigHelper : IConfigHelper, IDataProviderHelper<IConfigManager>
+    public sealed class DefaultConfigHelper : ConfigHelperBase
     {
-        public bool ReadData(IConfigManager owner, string dataAssetName, object dataAsset, object userData)
+        public override bool ReadData(IConfigManager owner, string dataAssetName, object dataAsset, object userData)
         {
             // dataAsset 由 ResourceManager 加载，Godot 文本资源为 string，二进制为 byte[]
             if (dataAsset is byte[] bytes)
@@ -30,12 +30,12 @@ namespace GodotGameFramework
             return false;
         }
 
-        public bool ReadData(IConfigManager owner, string dataAssetName, byte[] dataBytes, int startIndex, int length, object userData)
+        public override bool ReadData(IConfigManager owner, string dataAssetName, byte[] dataBytes, int startIndex, int length, object userData)
         {
             return owner.ParseData(dataBytes, startIndex, length, userData);
         }
 
-        public bool ParseData(IConfigManager owner, string dataText, object userData)
+        public override bool ParseData(IConfigManager owner, string dataText, object userData)
         {
             if (string.IsNullOrEmpty(dataText))
             {
@@ -52,13 +52,13 @@ namespace GodotGameFramework
             return ParseTsv(owner, dataText);
         }
 
-        public bool ParseData(IConfigManager owner, byte[] dataBytes, int startIndex, int length, object userData)
+        public override bool ParseData(IConfigManager owner, byte[] dataBytes, int startIndex, int length, object userData)
         {
             string text = Encoding.UTF8.GetString(dataBytes, startIndex, length);
             return ParseData(owner, text, userData);
         }
 
-        public void ReleaseDataAsset(IConfigManager owner, object dataAsset)
+        public override void ReleaseDataAsset(IConfigManager owner, object dataAsset)
         {
             // Godot 资源由 GC 管理，无需手动释放
         }

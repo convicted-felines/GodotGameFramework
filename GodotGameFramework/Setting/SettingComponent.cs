@@ -17,6 +17,10 @@ namespace GodotGameFramework
         [Export]
         public string SettingFilePath { get; set; } = "user://settings.cfg";
 
+        /// <summary>设置辅助器完整类名。</summary>
+        [Export]
+        public string SettingHelperTypeName = "GodotGameFramework.DefaultSettingHelper";
+
         public int Count => m_SettingManager.Count;
 
         public override void _Ready()
@@ -30,7 +34,13 @@ namespace GodotGameFramework
                 return;
             }
 
-            var helper = new DefaultSettingHelper(SettingFilePath);
+            var helperType = GameFramework.Utility.Assembly.GetType(SettingHelperTypeName);
+            if (helperType == null || Activator.CreateInstance(helperType) is not SettingHelperBase helper)
+            {
+                GameFrameworkLog.Fatal($"Can not create setting helper '{SettingHelperTypeName}'.");
+                return;
+            }
+            helper.Initialize(SettingFilePath);
             m_SettingManager.SetSettingHelper(helper);
 
             // 启动时自动加载

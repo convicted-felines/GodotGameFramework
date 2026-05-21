@@ -10,9 +10,9 @@ namespace GodotGameFramework.Utility
     /// <summary>
     /// 使用 GD.Print / GD.PushWarning / GD.PushError 实现的日志辅助器。
     /// </summary>
-    public sealed class GodotLogHelper : GameFrameworkLog.ILogHelper
+    public sealed class GodotLogHelper : LogHelperBase
     {
-        public void Log(GameFrameworkLogLevel level, object message)
+        public override void Log(GameFrameworkLogLevel level, object message)
         {
             switch (level)
             {

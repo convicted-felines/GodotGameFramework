@@ -22,6 +22,9 @@ namespace GodotGameFramework
     {
         private INetworkManager m_NetworkManager = null;
 
+        /// <summary>默认网络频道辅助器完整类名（CreateNetworkChannel 无参重载使用）。</summary>
+        [Export] public string NetworkChannelHelperTypeName = "GodotGameFramework.DefaultNetworkChannelHelper";
+
         // ── 属性 ───────────────────────────────────────────────────────────────
 
         public int NetworkChannelCount => m_NetworkManager.NetworkChannelCount;
@@ -86,10 +89,16 @@ namespace GodotGameFramework
         public void GetAllNetworkChannels(List<INetworkChannel> results) =>
             m_NetworkManager.GetAllNetworkChannels(results);
 
-        /// <summary>创建 TCP 网络频道（使用默认协议辅助器）。</summary>
+        /// <summary>创建 TCP 网络频道（使用 Inspector 配置的协议辅助器）。</summary>
         public INetworkChannel CreateNetworkChannel(string name)
         {
-            return m_NetworkManager.CreateNetworkChannel(name, ServiceType.Tcp, new DefaultNetworkChannelHelper());
+            var helperType = GameFramework.Utility.Assembly.GetType(NetworkChannelHelperTypeName);
+            if (helperType == null || Activator.CreateInstance(helperType) is not NetworkChannelHelperBase helper)
+            {
+                GameFrameworkLog.Fatal($"Can not create network channel helper '{NetworkChannelHelperTypeName}'.");
+                return null;
+            }
+            return m_NetworkManager.CreateNetworkChannel(name, ServiceType.Tcp, helper);
         }
 
         /// <summary>创建 TCP 网络频道（使用自定义协议辅助器）。</summary>

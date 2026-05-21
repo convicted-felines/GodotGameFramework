@@ -24,6 +24,15 @@ namespace GodotGameFramework
         /// <summary>声音组名称列表。</summary>
         [Export] public string[] SoundGroupNames = Array.Empty<string>();
 
+        /// <summary>声音辅助器完整类名。</summary>
+        [Export] public string SoundHelperTypeName = "GodotGameFramework.SoundHelper";
+
+        /// <summary>声音组辅助器完整类名。</summary>
+        [Export] public string SoundGroupHelperTypeName = "GodotGameFramework.SoundGroupHelper";
+
+        /// <summary>声音代理辅助器完整类名。</summary>
+        [Export] public string SoundAgentHelperTypeName = "GodotGameFramework.SoundAgentHelper";
+
         /// <summary>各声音组代理数（每组可并发播放的声音数），与 SoundGroupNames 对应。</summary>
         [Export] public int[] SoundGroupAgentCounts = Array.Empty<int>();
 
@@ -88,8 +97,14 @@ namespace GodotGameFramework
             if (resourceManager != null)
                 m_SoundManager.SetResourceManager(resourceManager);
 
-            // 注入声音辅助器
-            m_SoundManager.SetSoundHelper(new SoundHelper());
+            // 注入声音辅助器（反射实例化，支持自定义扩展）
+            var soundHelperType = GameFramework.Utility.Assembly.GetType(SoundHelperTypeName);
+            if (soundHelperType == null || Activator.CreateInstance(soundHelperType) is not SoundHelperBase soundHelper)
+            {
+                GameFrameworkLog.Fatal($"Can not create sound helper '{SoundHelperTypeName}'.");
+                return;
+            }
+            m_SoundManager.SetSoundHelper(soundHelper);
 
             // 注册 Inspector 中配置的声音组
             RegisterSoundGroupsFromExport();
@@ -115,7 +130,12 @@ namespace GodotGameFramework
         {
             if (m_SoundManager.HasSoundGroup(soundGroupName)) return false;
 
-            var groupHelper = new SoundGroupHelper();
+            var groupHelperType = GameFramework.Utility.Assembly.GetType(SoundGroupHelperTypeName);
+            if (groupHelperType == null || Activator.CreateInstance(groupHelperType) is not SoundGroupHelperBase groupHelper)
+            {
+                GameFrameworkLog.Fatal($"Can not create sound group helper '{SoundGroupHelperTypeName}'.");
+                return false;
+            }
             bool added = m_SoundManager.AddSoundGroup(soundGroupName, avoidBeingReplaced, mute, volume, groupHelper);
             if (added) AddAgentsToGroup(soundGroupName, agentCount);
             return added;
@@ -182,7 +202,12 @@ namespace GodotGameFramework
                 bool mute = i < SoundGroupMutes.Length && SoundGroupMutes[i] != 0;
                 float volume = i < SoundGroupVolumes.Length ? SoundGroupVolumes[i] : 1f;
 
-                var groupHelper = new SoundGroupHelper();
+                var groupHelperType = GameFramework.Utility.Assembly.GetType(SoundGroupHelperTypeName);
+                if (groupHelperType == null || Activator.CreateInstance(groupHelperType) is not SoundGroupHelperBase groupHelper)
+                {
+                    GameFrameworkLog.Fatal($"Can not create sound group helper '{SoundGroupHelperTypeName}'.");
+                    continue;
+                }
                 bool added = m_SoundManager.AddSoundGroup(groupName, avoidReplaced, mute, volume, groupHelper);
                 if (added) AddAgentsToGroup(groupName, agentCount);
             }
@@ -190,9 +215,16 @@ namespace GodotGameFramework
 
         private void AddAgentsToGroup(string groupName, int agentCount)
         {
+            var agentHelperType = GameFramework.Utility.Assembly.GetType(SoundAgentHelperTypeName);
             for (int j = 0; j < agentCount; j++)
             {
-                var agentHelper = new SoundAgentHelper(this);
+                if (agentHelperType == null || Activator.CreateInstance(agentHelperType) is not SoundAgentHelperBase agentHelper)
+                {
+                    GameFrameworkLog.Fatal($"Can not create sound agent helper '{SoundAgentHelperTypeName}'.");
+                    return;
+                }
+                agentHelper.Name = $"SoundAgent_{groupName}_{j}";
+                AddChild(agentHelper);
                 m_SoundManager.AddSoundAgentHelper(groupName, agentHelper);
             }
         }

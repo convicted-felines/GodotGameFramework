@@ -27,6 +27,9 @@ namespace GodotGameFramework
         /// <summary>写磁盘缓冲大小（字节），达到此大小时写入文件。</summary>
         [Export] public int FlushSize = 1024 * 1024;
 
+        /// <summary>下载代理辅助器完整类名。</summary>
+        [Export] public string DownloadAgentHelperTypeName = "GodotGameFramework.HttpDownloadAgentHelper";
+
         // ── 内部状态 ───────────────────────────────────────────────────────────
 
         private IDownloadManager m_DownloadManager = null;
@@ -87,8 +90,16 @@ namespace GodotGameFramework
             m_DownloadManager.Timeout = Timeout;
             m_DownloadManager.FlushSize = FlushSize;
 
+            var agentHelperType = GameFramework.Utility.Assembly.GetType(DownloadAgentHelperTypeName);
             for (int i = 0; i < DownloadAgentCount; i++)
-                m_DownloadManager.AddDownloadAgentHelper(new HttpDownloadAgentHelper());
+            {
+                if (agentHelperType == null || Activator.CreateInstance(agentHelperType) is not DownloadAgentHelperBase agentHelper)
+                {
+                    GameFrameworkLog.Fatal($"Can not create download agent helper '{DownloadAgentHelperTypeName}'.");
+                    return;
+                }
+                m_DownloadManager.AddDownloadAgentHelper(agentHelper);
+            }
         }
 
         // ── 添加下载任务 ───────────────────────────────────────────────────────

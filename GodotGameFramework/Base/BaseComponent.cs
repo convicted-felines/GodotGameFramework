@@ -1,8 +1,3 @@
-//------------------------------------------------------------
-// GodotGameFramework
-// Based on UnityGameFramework by Jiang Yin
-//------------------------------------------------------------
-
 using GameFramework;
 using GodotGameFramework.Utility;
 using Godot;
@@ -21,9 +16,20 @@ namespace GodotGameFramework
         [Export] private bool m_RunInBackground = true;
         [Export] private bool m_NeverSleep = true;
 
+        /// <summary>日志辅助器完整类名。</summary>
+        [Export] public string LogHelperTypeName = "GodotGameFramework.Utility.GodotLogHelper";
+
+        /// <summary>文本辅助器完整类名。</summary>
+        [Export] public string TextHelperTypeName = "GodotGameFramework.Utility.DefaultTextHelper";
+
+        /// <summary>压缩辅助器完整类名。</summary>
+        [Export] public string CompressionHelperTypeName = "GodotGameFramework.Utility.DefaultCompressionHelper";
+
+        /// <summary>JSON 辅助器完整类名。</summary>
+        [Export] public string JsonHelperTypeName = "GodotGameFramework.Utility.DefaultJsonHelper";
+
         private float m_GameSpeedBeforePause = 1f;
 
-        /// <summary>游戏逻辑时间缩放（对应 Unity Time.timeScale）。</summary>
         public float GameSpeed
         {
             get => m_GameSpeed;
@@ -64,34 +70,34 @@ namespace GodotGameFramework
             GameFrameworkEntry.Shutdown();
         }
 
-        /// <summary>暂停游戏。</summary>
         public void PauseGame()
         {
-            if (IsGamePaused)
-                return;
+            if (IsGamePaused) return;
             m_GameSpeedBeforePause = GameSpeed;
             GameSpeed = 0f;
         }
 
-        /// <summary>恢复游戏。</summary>
         public void ResumeGame()
         {
-            if (!IsGamePaused)
-                return;
+            if (!IsGamePaused) return;
             GameSpeed = m_GameSpeedBeforePause;
         }
 
-        /// <summary>重置游戏速度。</summary>
         public void ResetNormalGameSpeed()
         {
-            if (IsNormalGameSpeed)
-                return;
+            if (IsNormalGameSpeed) return;
             GameSpeed = 1f;
         }
 
-        private static void InitTextHelper()
+        private void InitTextHelper()
         {
-            GameFramework.Utility.Text.SetTextHelper(new DefaultTextHelper());
+            var type = GameFramework.Utility.Assembly.GetType(TextHelperTypeName);
+            if (type == null || Activator.CreateInstance(type) is not TextHelperBase helper)
+            {
+                GD.PrintErr($"Can not create text helper '{TextHelperTypeName}'.");
+                return;
+            }
+            GameFramework.Utility.Text.SetTextHelper(helper);
         }
 
         private static void InitVersionHelper()
@@ -99,19 +105,37 @@ namespace GodotGameFramework
             // 可通过 Export 属性注入自定义 VersionHelper；默认不设置
         }
 
-        private static void InitLogHelper()
+        private void InitLogHelper()
         {
-            GameFrameworkLog.SetLogHelper(new GodotLogHelper());
+            var type = GameFramework.Utility.Assembly.GetType(LogHelperTypeName);
+            if (type == null || Activator.CreateInstance(type) is not LogHelperBase helper)
+            {
+                GD.PrintErr($"Can not create log helper '{LogHelperTypeName}'.");
+                return;
+            }
+            GameFrameworkLog.SetLogHelper(helper);
         }
 
-        private static void InitCompressionHelper()
+        private void InitCompressionHelper()
         {
-            GameFramework.Utility.Compression.SetCompressionHelper(new DefaultCompressionHelper());
+            var type = GameFramework.Utility.Assembly.GetType(CompressionHelperTypeName);
+            if (type == null || Activator.CreateInstance(type) is not CompressionHelperBase helper)
+            {
+                GameFrameworkLog.Fatal($"Can not create compression helper '{CompressionHelperTypeName}'.");
+                return;
+            }
+            GameFramework.Utility.Compression.SetCompressionHelper(helper);
         }
 
-        private static void InitJsonHelper()
+        private void InitJsonHelper()
         {
-            GameFramework.Utility.Json.SetJsonHelper(new DefaultJsonHelper());
+            var type = GameFramework.Utility.Assembly.GetType(JsonHelperTypeName);
+            if (type == null || Activator.CreateInstance(type) is not JsonHelperBase helper)
+            {
+                GameFrameworkLog.Fatal($"Can not create JSON helper '{JsonHelperTypeName}'.");
+                return;
+            }
+            GameFramework.Utility.Json.SetJsonHelper(helper);
         }
     }
 }

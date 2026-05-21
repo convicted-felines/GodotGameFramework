@@ -1,6 +1,7 @@
 using GameFramework;
 using GameFramework.FileSystem;
 using Godot;
+using System;
 using System.Collections.Generic;
 
 namespace GodotGameFramework
@@ -12,6 +13,10 @@ namespace GodotGameFramework
     public sealed partial class FileSystemComponent : GameFrameworkComponent
     {
         private IFileSystemManager m_FileSystemManager = null;
+
+        /// <summary>文件系统辅助器完整类名。</summary>
+        [Export]
+        public string FileSystemHelperTypeName = "GodotGameFramework.GodotFileSystemHelper";
 
         public int Count => m_FileSystemManager.Count;
 
@@ -26,7 +31,13 @@ namespace GodotGameFramework
                 return;
             }
 
-            m_FileSystemManager.SetFileSystemHelper(new GodotFileSystemHelper());
+            var helperType = GameFramework.Utility.Assembly.GetType(FileSystemHelperTypeName);
+            if (helperType == null || Activator.CreateInstance(helperType) is not FileSystemHelperBase helper)
+            {
+                GameFrameworkLog.Fatal($"Can not create file system helper '{FileSystemHelperTypeName}'.");
+                return;
+            }
+            m_FileSystemManager.SetFileSystemHelper(helper);
         }
 
         // ── 生命周期 ───────────────────────────────────────────────────────────

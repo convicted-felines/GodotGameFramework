@@ -15,21 +15,21 @@ namespace GodotGameFramework
     /// 项目若需自定义协议，继承此类并覆盖以下方法：
     ///   PacketHeaderLength, Serialize, DeserializePacketHeader, DeserializePacket
     /// </summary>
-    public class DefaultNetworkChannelHelper : INetworkChannelHelper
+    public class DefaultNetworkChannelHelper : NetworkChannelHelperBase
     {
         protected INetworkChannel m_NetworkChannel;
 
         // ── INetworkChannelHelper ──────────────────────────────────────────────
 
         /// <summary>包头长度：4 字节 int32 body 长度。</summary>
-        public virtual int PacketHeaderLength => 4;
+        public override int PacketHeaderLength => 4;
 
-        public virtual void Initialize(INetworkChannel networkChannel)
+        public override void Initialize(INetworkChannel networkChannel)
         {
             m_NetworkChannel = networkChannel;
         }
 
-        public virtual void Shutdown()
+        public override void Shutdown()
         {
             m_NetworkChannel = null;
         }
@@ -39,14 +39,14 @@ namespace GodotGameFramework
             // 连接前的准备工作（如重置序列号）
         }
 
-        public virtual bool SendHeartBeat()
+        public override bool SendHeartBeat()
         {
             if (m_NetworkChannel == null) return false;
             m_NetworkChannel.Send(new HeartBeatPacket());
             return true;
         }
 
-        public virtual bool Serialize<T>(T packet, Stream destination) where T : Packet
+        public override bool Serialize<T>(T packet, Stream destination)
         {
             if (packet is HeartBeatPacket)
             {
@@ -65,7 +65,7 @@ namespace GodotGameFramework
             return false;
         }
 
-        public virtual IPacketHeader DeserializePacketHeader(Stream source, out object customErrorData)
+        public override IPacketHeader DeserializePacketHeader(Stream source, out object customErrorData)
         {
             customErrorData = null;
 
@@ -81,7 +81,7 @@ namespace GodotGameFramework
             return new DefaultPacketHeader(bodyLength);
         }
 
-        public virtual Packet DeserializePacket(IPacketHeader packetHeader, Stream source, out object customErrorData)
+        public override Packet DeserializePacket(IPacketHeader packetHeader, Stream source, out object customErrorData)
         {
             customErrorData = null;
 

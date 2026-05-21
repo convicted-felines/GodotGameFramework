@@ -15,6 +15,10 @@ namespace GodotGameFramework
         [Export]
         public int CachedBytesSize { get; private set; } = 0;
 
+        /// <summary>配置辅助器完整类名。</summary>
+        [Export]
+        public string ConfigHelperTypeName = "GodotGameFramework.DefaultConfigHelper";
+
         public int Count => m_ConfigManager.Count;
 
         public override void _Ready()
@@ -28,7 +32,12 @@ namespace GodotGameFramework
                 return;
             }
 
-            var helper = new DefaultConfigHelper();
+            var helperType = GameFramework.Utility.Assembly.GetType(ConfigHelperTypeName);
+            if (helperType == null || Activator.CreateInstance(helperType) is not ConfigHelperBase helper)
+            {
+                GameFrameworkLog.Fatal($"Can not create config helper '{ConfigHelperTypeName}'.");
+                return;
+            }
             m_ConfigManager.SetDataProviderHelper(helper);
             m_ConfigManager.SetConfigHelper(helper);
 

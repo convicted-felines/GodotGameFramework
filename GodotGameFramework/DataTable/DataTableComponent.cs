@@ -13,6 +13,12 @@ namespace GodotGameFramework
     {
         private IDataTableManager m_DataTableManager = null;
 
+        /// <summary>数据表辅助器完整类名。</summary>
+        [Export] public string DataTableHelperTypeName = "GodotGameFramework.DefaultDataTableHelper";
+
+        /// <summary>数据提供辅助器完整类名。</summary>
+        [Export] public string DataProviderHelperTypeName = "GodotGameFramework.DefaultDataProviderHelper";
+
         public int Count => m_DataTableManager.Count;
 
         public int CachedBytesSize => m_DataTableManager.CachedBytesSize;
@@ -28,8 +34,21 @@ namespace GodotGameFramework
                 return;
             }
 
-            m_DataTableManager.SetDataProviderHelper(new DefaultDataProviderHelper());
-            m_DataTableManager.SetDataTableHelper(new DefaultDataTableHelper());
+            var dataProviderHelperType = GameFramework.Utility.Assembly.GetType(DataProviderHelperTypeName);
+            if (dataProviderHelperType == null || Activator.CreateInstance(dataProviderHelperType) is not IDataProviderHelper<DataTableBase> dataProviderHelper)
+            {
+                GameFrameworkLog.Fatal($"Can not create data provider helper '{DataProviderHelperTypeName}'.");
+                return;
+            }
+            m_DataTableManager.SetDataProviderHelper(dataProviderHelper);
+
+            var dataTableHelperType = GameFramework.Utility.Assembly.GetType(DataTableHelperTypeName);
+            if (dataTableHelperType == null || Activator.CreateInstance(dataTableHelperType) is not DataTableHelperBase dataTableHelper)
+            {
+                GameFrameworkLog.Fatal($"Can not create data table helper '{DataTableHelperTypeName}'.");
+                return;
+            }
+            m_DataTableManager.SetDataTableHelper(dataTableHelper);
         }
 
         public void SetResourceManager(GameFramework.Resource.IResourceManager resourceManager)

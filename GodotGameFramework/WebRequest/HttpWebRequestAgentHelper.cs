@@ -10,7 +10,7 @@ namespace GodotGameFramework
     /// Web 请求代理辅助器。基于 HttpClient 实现 GET / POST 请求。
     /// 每个实例对应 WebRequestManager 中的一个请求代理槽位。
     /// </summary>
-    public sealed class HttpWebRequestAgentHelper : IWebRequestAgentHelper
+    public sealed class HttpWebRequestAgentHelper : WebRequestAgentHelperBase
     {
         private static readonly HttpClient s_HttpClient = new HttpClient { Timeout = Timeout.InfiniteTimeSpan };
 
@@ -18,18 +18,18 @@ namespace GodotGameFramework
 
         // ── IWebRequestAgentHelper 事件 ────────────────────────────────────────
 
-        public event EventHandler<WebRequestAgentHelperCompleteEventArgs> WebRequestAgentHelperComplete;
-        public event EventHandler<WebRequestAgentHelperErrorEventArgs> WebRequestAgentHelperError;
+        public override event EventHandler<WebRequestAgentHelperCompleteEventArgs> WebRequestAgentHelperComplete;
+        public override event EventHandler<WebRequestAgentHelperErrorEventArgs> WebRequestAgentHelperError;
 
         // ── IWebRequestAgentHelper 方法 ────────────────────────────────────────
 
-        public void Request(string webRequestUri, object userData)
+        public override void Request(string webRequestUri, object userData)
             => StartRequest(webRequestUri, null);
 
-        public void Request(string webRequestUri, byte[] postData, object userData)
+        public override void Request(string webRequestUri, byte[] postData, object userData)
             => StartRequest(webRequestUri, postData);
 
-        public void Reset()
+        public override void Reset()
         {
             m_Cts?.Cancel();
             m_Cts?.Dispose();

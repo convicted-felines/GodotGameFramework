@@ -2,6 +2,7 @@ using GameFramework;
 using GameFramework.Localization;
 using GameFramework.Resource;
 using Godot;
+using System;
 using System.Collections.Generic;
 
 namespace GodotGameFramework
@@ -30,6 +31,12 @@ namespace GodotGameFramework
 
         /// <summary>缓冲二进制流大小（字节）；0 表示不预分配。</summary>
         [Export] public int CachedBytesSize = 0;
+
+        /// <summary>本地化辅助器完整类名。</summary>
+        [Export] public string LocalizationHelperTypeName = "GodotGameFramework.GodotLocalizationHelper";
+
+        /// <summary>本地化数据提供辅助器完整类名。</summary>
+        [Export] public string LocalizationDataProviderHelperTypeName = "GodotGameFramework.DefaultLocalizationDataProviderHelper";
 
         // ── 内部状态 ───────────────────────────────────────────────────────────
 
@@ -64,9 +71,21 @@ namespace GodotGameFramework
             if (resourceManager != null)
                 m_LocalizationManager.SetResourceManager(resourceManager);
 
-            var helper = new DefaultLocalizationDataProviderHelper();
-            m_LocalizationManager.SetDataProviderHelper(helper);
-            m_LocalizationManager.SetLocalizationHelper(new GodotLocalizationHelper());
+            var dataProviderHelperType = GameFramework.Utility.Assembly.GetType(LocalizationDataProviderHelperTypeName);
+            if (dataProviderHelperType == null || Activator.CreateInstance(dataProviderHelperType) is not LocalizationDataProviderHelperBase dataProviderHelper)
+            {
+                GameFrameworkLog.Fatal($"Can not create localization data provider helper '{LocalizationDataProviderHelperTypeName}'.");
+                return;
+            }
+            m_LocalizationManager.SetDataProviderHelper(dataProviderHelper);
+
+            var locHelperType = GameFramework.Utility.Assembly.GetType(LocalizationHelperTypeName);
+            if (locHelperType == null || Activator.CreateInstance(locHelperType) is not LocalizationHelperBase locHelper)
+            {
+                GameFrameworkLog.Fatal($"Can not create localization helper '{LocalizationHelperTypeName}'.");
+                return;
+            }
+            m_LocalizationManager.SetLocalizationHelper(locHelper);
 
             if (CachedBytesSize > 0)
                 m_LocalizationManager.EnsureCachedBytesSize(CachedBytesSize);

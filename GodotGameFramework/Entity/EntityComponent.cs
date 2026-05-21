@@ -28,20 +28,14 @@ namespace GodotGameFramework
     {
         // ── Inspector 配置 ─────────────────────────────────────────────────────
 
-        /// <summary>要预先注册的实体组名称列表（顺序与下方参数列表对应）。</summary>
-        [Export] public string[] EntityGroupNames = Array.Empty<string>();
+        /// <summary>实体辅助器完整类名，留空则使用默认实现。</summary>
+        [Export] public string EntityHelperTypeName = "GodotGameFramework.EntityHelper";
 
-        /// <summary>各实体组对象池自动释放间隔（秒）。</summary>
-        [Export] public float[] InstanceAutoReleaseIntervals = Array.Empty<float>();
+        /// <summary>实体组辅助器完整类名，留空则使用默认实现。</summary>
+        [Export] public string EntityGroupHelperTypeName = "GodotGameFramework.EntityGroupHelper";
 
-        /// <summary>各实体组对象池容量。</summary>
-        [Export] public int[] InstanceCapacities = Array.Empty<int>();
-
-        /// <summary>各实体组对象池过期时间（秒）。</summary>
-        [Export] public float[] InstanceExpireTimes = Array.Empty<float>();
-
-        /// <summary>各实体组对象池优先级。</summary>
-        [Export] public int[] InstancePriorities = Array.Empty<int>();
+        /// <summary>要预先注册的实体组列表，每项包含名称及对象池参数。</summary>
+        [Export] public EntityGroupConfig[] EntityGroups = Array.Empty<EntityGroupConfig>();
 
         // ── 内部状态 ───────────────────────────────────────────────────────────
 
@@ -113,8 +107,21 @@ namespace GodotGameFramework
                 m_EntityManager.SetResourceManager(resourceManager);
             }
 
-            // 注入实体辅助器
-            m_EntityManager.SetEntityHelper(new EntityHelper(this));
+            // 注入实体辅助器（通过类名反射实例化，支持自定义扩展）
+            var entityHelperType = GameFramework.Utility.Assembly.GetType(EntityHelperTypeName);
+            if (entityHelperType == null)
+            {
+                GameFrameworkLog.Fatal($"Can not find entity helper type '{EntityHelperTypeName}'.");
+                return;
+            }
+            if (Activator.CreateInstance(entityHelperType) is not EntityHelperBase entityHelper)
+            {
+                GameFrameworkLog.Fatal($"Can not create entity helper instance '{EntityHelperTypeName}'.");
+                return;
+            }
+            entityHelper.Name = "EntityHelper";
+            AddChild(entityHelper);
+            m_EntityManager.SetEntityHelper(entityHelper);
 
             // 注册 Inspector 中配置的实体组
             RegisterEntityGroupsFromExport();
@@ -238,27 +245,29 @@ namespace GodotGameFramework
 
         private void RegisterEntityGroupsFromExport()
         {
-            int count = EntityGroupNames?.Length ?? 0;
-            for (int i = 0; i < count; i++)
+            if (EntityGroups == null)
+                return;
+
+            foreach (var config in EntityGroups)
             {
-                string groupName = EntityGroupNames[i];
-                if (string.IsNullOrEmpty(groupName) || m_EntityManager.HasEntityGroup(groupName))
+                if (config == null || string.IsNullOrEmpty(config.Name) || m_EntityManager.HasEntityGroup(config.Name))
                     continue;
 
-                float releaseInterval = i < InstanceAutoReleaseIntervals.Length ? InstanceAutoReleaseIntervals[i] : 60f;
-                int capacity = i < InstanceCapacities.Length ? InstanceCapacities[i] : 16;
-                float expireTime = i < InstanceExpireTimes.Length ? InstanceExpireTimes[i] : 60f;
-                int priority = i < InstancePriorities.Length ? InstancePriorities[i] : 0;
-
-                var groupHelper = CreateGroupHelperNode(groupName);
-                m_EntityManager.AddEntityGroup(groupName, releaseInterval, capacity, expireTime, priority, groupHelper);
+                var groupHelper = CreateGroupHelperNode(config.Name);
+                m_EntityManager.AddEntityGroup(config.Name, config.InstanceAutoReleaseInterval,
+                    config.InstanceCapacity, config.InstanceExpireTime, config.InstancePriority, groupHelper);
             }
         }
 
         /// <summary>为实体组创建并注册对应的场景树容器节点。</summary>
-        private EntityGroupHelper CreateGroupHelperNode(string groupName)
+        private EntityGroupHelperBase CreateGroupHelperNode(string groupName)
         {
-            var helper = new EntityGroupHelper();
+            var helperType = GameFramework.Utility.Assembly.GetType(EntityGroupHelperTypeName);
+            if (helperType == null || Activator.CreateInstance(helperType) is not EntityGroupHelperBase helper)
+            {
+                GameFrameworkLog.Fatal($"Can not create entity group helper instance '{EntityGroupHelperTypeName}'.");
+                return null;
+            }
             helper.Name = $"EntityGroup_{groupName}";
             AddChild(helper);
             return helper;

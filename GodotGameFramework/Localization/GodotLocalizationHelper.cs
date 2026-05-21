@@ -6,9 +6,9 @@ namespace GodotGameFramework
     /// <summary>
     /// 本地化辅助器。将 Godot 系统语言映射到 GameFramework Language 枚举。
     /// </summary>
-    public sealed class GodotLocalizationHelper : ILocalizationHelper
+    public sealed class GodotLocalizationHelper : LocalizationHelperBase
     {
-        public Language SystemLanguage
+        public override Language SystemLanguage
         {
             get
             {

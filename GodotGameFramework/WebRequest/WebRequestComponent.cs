@@ -26,6 +26,9 @@ namespace GodotGameFramework
         /// <summary>超时时间（秒），0 表示不超时。</summary>
         [Export] public float Timeout = 30f;
 
+        /// <summary>Web 请求代理辅助器完整类名。</summary>
+        [Export] public string WebRequestAgentHelperTypeName = "GodotGameFramework.HttpWebRequestAgentHelper";
+
         // ── 内部状态 ───────────────────────────────────────────────────────────
 
         private IWebRequestManager m_WebRequestManager = null;
@@ -78,8 +81,16 @@ namespace GodotGameFramework
 
             m_WebRequestManager.Timeout = Timeout;
 
+            var agentHelperType = GameFramework.Utility.Assembly.GetType(WebRequestAgentHelperTypeName);
             for (int i = 0; i < WebRequestAgentCount; i++)
-                m_WebRequestManager.AddWebRequestAgentHelper(new HttpWebRequestAgentHelper());
+            {
+                if (agentHelperType == null || Activator.CreateInstance(agentHelperType) is not WebRequestAgentHelperBase agentHelper)
+                {
+                    GameFrameworkLog.Fatal($"Can not create web request agent helper '{WebRequestAgentHelperTypeName}'.");
+                    return;
+                }
+                m_WebRequestManager.AddWebRequestAgentHelper(agentHelper);
+            }
         }
 
         // ── GET 请求 ───────────────────────────────────────────────────────────

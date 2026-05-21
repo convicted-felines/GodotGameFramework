@@ -7,9 +7,20 @@
 [ext_resource type="Script" uid="uid://dtj3ietqtpn7p" path="res://GodotGameFramework/FileSystem/FileSystemComponent.cs" id="4_5ehnu"]
 [ext_resource type="Script" uid="uid://bsaf4euiy5utm" path="res://GodotGameFramework/Entity/EntityComponent.cs" id="4_ttdra"]
 [ext_resource type="Script" uid="uid://vw8rdmftwexa" path="res://GodotGameFramework/UI/UIComponent.cs" id="5_5dcsp"]
+[ext_resource type="Script" uid="uid://bald25kada5re" path="res://GodotGameFramework/Entity/EntityGroupConfig.cs" id="6_5ehnu"]
 [ext_resource type="Script" uid="uid://b38wkfr4xwo5" path="res://GodotGameFramework/DataTable/DataTableComponent.cs" id="6_lkeb4"]
 [ext_resource type="Script" uid="uid://bpp2brj3r1qbl" path="res://GodotGameFramework/Resource/ResourceComponent.cs" id="9_5xj71"]
 [ext_resource type="Script" uid="uid://dst66iclrgixy" path="res://GodotGameFramework/Setting/SettingComponent.cs" id="10_mvr3t"]
+
+[sub_resource type="Resource" id="Resource_5xj71"]
+script = ExtResource("6_5ehnu")
+Name = "Default"
+metadata/_custom_type_script = "uid://bald25kada5re"
+
+[sub_resource type="Resource" id="Resource_mvr3t"]
+script = ExtResource("6_5ehnu")
+Name = "Character"
+metadata/_custom_type_script = "uid://bald25kada5re"
 
 [node name="GameEntry" type="Node3D" unique_id=1007060803]
 
@@ -29,6 +40,7 @@ script = ExtResource("4_5ehnu")
 
 [node name="EntityComponent" type="Node" parent="GameFramework" unique_id=1405598650]
 script = ExtResource("4_ttdra")
+EntityGroups = [SubResource("Resource_5xj71"), SubResource("Resource_mvr3t")]
 
 [node name="UIComponent" type="Node" parent="GameFramework" unique_id=1461927318]
 script = ExtResource("5_5dcsp")

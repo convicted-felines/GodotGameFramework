@@ -11,7 +11,7 @@ namespace GodotGameFramework
     /// 下载代理辅助器。基于 HttpClient 实现，支持断点续传（Range 请求）。
     /// 每个实例对应 DownloadManager 中的一个下载代理槽位。
     /// </summary>
-    public sealed class HttpDownloadAgentHelper : IDownloadAgentHelper
+    public sealed class HttpDownloadAgentHelper : DownloadAgentHelperBase
     {
         private static readonly HttpClient s_HttpClient = new HttpClient { Timeout = Timeout.InfiniteTimeSpan };
 
@@ -19,23 +19,23 @@ namespace GodotGameFramework
 
         // ── IDownloadAgentHelper 事件 ──────────────────────────────────────────
 
-        public event EventHandler<DownloadAgentHelperUpdateBytesEventArgs> DownloadAgentHelperUpdateBytes;
-        public event EventHandler<DownloadAgentHelperUpdateLengthEventArgs> DownloadAgentHelperUpdateLength;
-        public event EventHandler<DownloadAgentHelperCompleteEventArgs> DownloadAgentHelperComplete;
-        public event EventHandler<DownloadAgentHelperErrorEventArgs> DownloadAgentHelperError;
+        public override event EventHandler<DownloadAgentHelperUpdateBytesEventArgs> DownloadAgentHelperUpdateBytes;
+        public override event EventHandler<DownloadAgentHelperUpdateLengthEventArgs> DownloadAgentHelperUpdateLength;
+        public override event EventHandler<DownloadAgentHelperCompleteEventArgs> DownloadAgentHelperComplete;
+        public override event EventHandler<DownloadAgentHelperErrorEventArgs> DownloadAgentHelperError;
 
         // ── IDownloadAgentHelper 方法 ──────────────────────────────────────────
 
-        public void Download(string downloadUri, object userData)
+        public override void Download(string downloadUri, object userData)
             => StartDownload(downloadUri, -1L, -1L, userData);
 
-        public void Download(string downloadUri, long fromPosition, object userData)
+        public override void Download(string downloadUri, long fromPosition, object userData)
             => StartDownload(downloadUri, fromPosition, -1L, userData);
 
-        public void Download(string downloadUri, long fromPosition, long toPosition, object userData)
+        public override void Download(string downloadUri, long fromPosition, long toPosition, object userData)
             => StartDownload(downloadUri, fromPosition, toPosition, userData);
 
-        public void Reset()
+        public override void Reset()
         {
             m_Cts?.Cancel();
             m_Cts?.Dispose();

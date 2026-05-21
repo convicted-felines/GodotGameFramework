@@ -11,9 +11,9 @@ namespace GodotGameFramework.Utility
     /// <summary>
     /// 基于 System.IO.Compression (DeflateStream) 的压缩辅助器。
     /// </summary>
-    public sealed class DefaultCompressionHelper : global::GameFramework.Utility.Compression.ICompressionHelper
+    public sealed class DefaultCompressionHelper : CompressionHelperBase
     {
-        public bool Compress(byte[] bytes, int offset, int length, Stream compressedStream)
+        public override bool Compress(byte[] bytes, int offset, int length, Stream compressedStream)
         {
             try
             {
@@ -27,7 +27,7 @@ namespace GodotGameFramework.Utility
             }
         }
 
-        public bool Compress(Stream stream, Stream compressedStream)
+        public override bool Compress(Stream stream, Stream compressedStream)
         {
             try
             {
@@ -41,7 +41,7 @@ namespace GodotGameFramework.Utility
             }
         }
 
-        public bool Decompress(byte[] bytes, int offset, int length, Stream decompressedStream)
+        public override bool Decompress(byte[] bytes, int offset, int length, Stream decompressedStream)
         {
             try
             {
@@ -56,7 +56,7 @@ namespace GodotGameFramework.Utility
             }
         }
 
-        public bool Decompress(Stream stream, Stream decompressedStream)
+        public override bool Decompress(Stream stream, Stream decompressedStream)
         {
             try
             {

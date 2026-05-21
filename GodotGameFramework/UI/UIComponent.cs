@@ -27,6 +27,12 @@ namespace GodotGameFramework
     {
         // ── Inspector 配置 ─────────────────────────────────────────────────────
 
+        /// <summary>UI 界面辅助器完整类名。</summary>
+        [Godot.Export] public string UIFormHelperTypeName = "GodotGameFramework.UIFormHelper";
+
+        /// <summary>UI 组辅助器完整类名。</summary>
+        [Godot.Export] public string UIGroupHelperTypeName = "GodotGameFramework.UIGroupHelper";
+
         /// <summary>要预先注册的 UI 组名称列表（顺序与 UIGroupDepths 对应）。</summary>
         [Godot.Export] public string[] UIGroupNames = Array.Empty<string>();
 
@@ -144,8 +150,16 @@ namespace GodotGameFramework
                 m_UIManager.SetResourceManager(resourceManager);
             }
 
-            // 注入 UI 辅助器
-            m_UIManager.SetUIFormHelper(new UIFormHelper(this));
+            // 注入 UI 辅助器（反射实例化，支持自定义扩展）
+            var uiFormHelperType = GameFramework.Utility.Assembly.GetType(UIFormHelperTypeName);
+            if (uiFormHelperType == null || Activator.CreateInstance(uiFormHelperType) is not UIFormHelperBase uiFormHelper)
+            {
+                GameFrameworkLog.Fatal($"Can not create UI form helper '{UIFormHelperTypeName}'.");
+                return;
+            }
+            uiFormHelper.Name = "UIFormHelper";
+            AddChild(uiFormHelper);
+            m_UIManager.SetUIFormHelper(uiFormHelper);
 
             // 注册 Inspector 中配置的 UI 组
             RegisterUIGroupsFromExport();
@@ -254,9 +268,14 @@ namespace GodotGameFramework
         }
 
         /// <summary>为 UI 组创建 CanvasLayer 容器节点并挂到 UIComponent 下。</summary>
-        private UIGroupHelper CreateGroupHelperNode(string groupName, int depth)
+        private UIGroupHelperBase CreateGroupHelperNode(string groupName, int depth)
         {
-            var helper = new UIGroupHelper();
+            var helperType = GameFramework.Utility.Assembly.GetType(UIGroupHelperTypeName);
+            if (helperType == null || Activator.CreateInstance(helperType) is not UIGroupHelperBase helper)
+            {
+                GameFrameworkLog.Fatal($"Can not create UI group helper '{UIGroupHelperTypeName}'.");
+                return null;
+            }
             helper.Name = $"UIGroup_{groupName}";
             helper.Layer = depth;
             AddChild(helper);

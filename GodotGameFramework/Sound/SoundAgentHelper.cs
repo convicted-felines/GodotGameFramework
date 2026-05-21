@@ -5,15 +5,11 @@ using System;
 namespace GodotGameFramework
 {
     /// <summary>
-    /// 声音代理辅助器。将 ISoundAgentHelper 映射到 Godot AudioStreamPlayer。
-    ///
-    /// 每个 SoundAgentHelper 对应场景树中一个 AudioStreamPlayer 节点（2D 音效）
-    /// 或 AudioStreamPlayer3D 节点（3D 空间音效，SpatialBlend > 0 时使用）。
-    /// 淡入淡出通过 Tween 实现。
+    /// 默认声音代理辅助器。将 ISoundAgentHelper 映射到 Godot AudioStreamPlayer。
+    /// 每个实例对应场景树中一个 AudioStreamPlayer 节点（2D 音效）或 AudioStreamPlayer3D 节点（3D 空间音效）。
     /// </summary>
-    public sealed class SoundAgentHelper : ISoundAgentHelper
+    public sealed partial class SoundAgentHelper : SoundAgentHelperBase
     {
-        private readonly Node m_Parent;
         private AudioStreamPlayer m_Player2D;
         private AudioStreamPlayer3D m_Player3D;
 
@@ -30,18 +26,11 @@ namespace GodotGameFramework
 
         private Tween m_FadeTween;
 
-        public event EventHandler<ResetSoundAgentEventArgs> ResetSoundAgent;
+        public override event EventHandler<ResetSoundAgentEventArgs> ResetSoundAgent;
 
-        public SoundAgentHelper(Node parent)
-        {
-            m_Parent = parent;
-        }
+        public override bool IsPlaying => m_Is3D ? (m_Player3D?.Playing ?? false) : (m_Player2D?.Playing ?? false);
 
-        // ── ISoundAgentHelper 属性 ─────────────────────────────────────────────
-
-        public bool IsPlaying => m_Is3D ? (m_Player3D?.Playing ?? false) : (m_Player2D?.Playing ?? false);
-
-        public float Length
+        public override float Length
         {
             get
             {
@@ -50,7 +39,7 @@ namespace GodotGameFramework
             }
         }
 
-        public float Time
+        public override float Time
         {
             get => m_Is3D ? (float)(m_Player3D?.GetPlaybackPosition() ?? 0f) : (float)(m_Player2D?.GetPlaybackPosition() ?? 0f);
             set
@@ -60,35 +49,27 @@ namespace GodotGameFramework
             }
         }
 
-        public bool Mute
+        public override bool Mute
         {
             get => m_Mute;
-            set
-            {
-                m_Mute = value;
-                ApplyVolume();
-            }
+            set { m_Mute = value; ApplyVolume(); }
         }
 
-        public bool Loop
+        public override bool Loop
         {
             get => m_Loop;
-            set
-            {
-                m_Loop = value;
-                ApplyLoopToStream();
-            }
+            set { m_Loop = value; ApplyLoopToStream(); }
         }
 
-        public int Priority { get => m_Priority; set => m_Priority = value; }
+        public override int Priority { get => m_Priority; set => m_Priority = value; }
 
-        public float Volume
+        public override float Volume
         {
             get => m_Volume;
             set { m_Volume = value; ApplyVolume(); }
         }
 
-        public float Pitch
+        public override float Pitch
         {
             get => m_Pitch;
             set
@@ -99,19 +80,19 @@ namespace GodotGameFramework
             }
         }
 
-        public float PanStereo
+        public override float PanStereo
         {
             get => m_PanStereo;
-            set { m_PanStereo = value; /* AudioStreamPlayer 无 PanStereo，需用 AudioEffectPanner */ }
+            set => m_PanStereo = value;
         }
 
-        public float SpatialBlend
+        public override float SpatialBlend
         {
             get => m_SpatialBlend;
             set => m_SpatialBlend = value;
         }
 
-        public float MaxDistance
+        public override float MaxDistance
         {
             get => m_MaxDistance;
             set
@@ -121,7 +102,7 @@ namespace GodotGameFramework
             }
         }
 
-        public float DopplerLevel
+        public override float DopplerLevel
         {
             get => m_DopplerLevel;
             set
@@ -133,9 +114,7 @@ namespace GodotGameFramework
             }
         }
 
-        // ── ISoundAgentHelper 方法 ─────────────────────────────────────────────
-
-        public void Play(float fadeInSeconds)
+        public override void Play(float fadeInSeconds)
         {
             EnsurePlayer();
             ApplyAllParams();
@@ -150,19 +129,15 @@ namespace GodotGameFramework
             }
         }
 
-        public void Stop(float fadeOutSeconds)
+        public override void Stop(float fadeOutSeconds)
         {
             if (fadeOutSeconds > 0f)
-            {
                 FadeVolume(0f, fadeOutSeconds, stopAfter: true);
-            }
             else
-            {
                 StopPlayer();
-            }
         }
 
-        public void Pause(float fadeOutSeconds)
+        public override void Pause(float fadeOutSeconds)
         {
             if (fadeOutSeconds > 0f)
             {
@@ -175,7 +150,7 @@ namespace GodotGameFramework
             }
         }
 
-        public void Resume(float fadeInSeconds)
+        public override void Resume(float fadeInSeconds)
         {
             if (m_Is3D) m_Player3D.StreamPaused = false;
             else m_Player2D.StreamPaused = false;
@@ -187,11 +162,11 @@ namespace GodotGameFramework
             }
         }
 
-        public void Reset()
+        public override void Reset()
         {
             StopPlayer();
-            if (m_Player2D != null) { m_Player2D.Stream = null; }
-            if (m_Player3D != null) { m_Player3D.Stream = null; }
+            if (m_Player2D != null) m_Player2D.Stream = null;
+            if (m_Player3D != null) m_Player3D.Stream = null;
             m_Mute = false;
             m_Loop = false;
             m_Priority = 0;
@@ -203,7 +178,7 @@ namespace GodotGameFramework
             m_DopplerLevel = 1f;
         }
 
-        public bool SetSoundAsset(object soundAsset)
+        public override bool SetSoundAsset(object soundAsset)
         {
             if (soundAsset is not AudioStream stream) return false;
 
@@ -217,8 +192,6 @@ namespace GodotGameFramework
             return true;
         }
 
-        // ── 私有辅助 ───────────────────────────────────────────────────────────
-
         private void EnsurePlayer(bool? force3D = null)
         {
             bool use3D = force3D ?? m_SpatialBlend > 0f;
@@ -226,24 +199,21 @@ namespace GodotGameFramework
             if (use3D && m_Player3D == null)
             {
                 m_Player3D = new AudioStreamPlayer3D();
-                m_Parent.AddChild(m_Player3D);
+                AddChild(m_Player3D);
                 m_Is3D = true;
             }
             else if (!use3D && m_Player2D == null)
             {
                 m_Player2D = new AudioStreamPlayer();
                 m_Player2D.Finished += OnFinished;
-                m_Parent.AddChild(m_Player2D);
+                AddChild(m_Player2D);
                 m_Is3D = false;
             }
         }
 
         private void OnFinished()
         {
-            if (m_Loop)
-            {
-                m_Player2D?.Play();
-            }
+            if (m_Loop) m_Player2D?.Play();
         }
 
         private void StopPlayer()
@@ -269,7 +239,7 @@ namespace GodotGameFramework
         private void FadeVolume(float targetLinear, float seconds, bool stopAfter = false, bool pauseAfter = false)
         {
             m_FadeTween?.Kill();
-            m_FadeTween = m_Parent.CreateTween();
+            m_FadeTween = CreateTween();
             Node player = m_Is3D ? (Node)m_Player3D : m_Player2D;
             if (player == null) return;
 

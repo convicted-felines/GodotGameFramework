@@ -8,9 +8,9 @@ namespace GodotGameFramework
     /// 本地化数据提供者辅助器。支持 TSV（Key\tValue）和 JSON 扁平对象两种格式，
     /// 与 DefaultConfigHelper 的解析规则保持一致。
     /// </summary>
-    public sealed class DefaultLocalizationDataProviderHelper : IDataProviderHelper<ILocalizationManager>
+    public sealed class DefaultLocalizationDataProviderHelper : LocalizationDataProviderHelperBase
     {
-        public bool ReadData(ILocalizationManager dataProvider, string dataAssetName, object dataAsset, object userData)
+        public override bool ReadData(ILocalizationManager dataProvider, string dataAssetName, object dataAsset, object userData)
         {
             // dataAsset 是已加载的资源对象（异步加载路径），此处按字符串路径同步加载
             string text = ReadText(dataAssetName);
@@ -18,26 +18,26 @@ namespace GodotGameFramework
             return dataProvider.ParseData(text, userData);
         }
 
-        public bool ReadData(ILocalizationManager dataProvider, string dataAssetName, byte[] dataBytes, int startIndex, int length, object userData)
+        public override bool ReadData(ILocalizationManager dataProvider, string dataAssetName, byte[] dataBytes, int startIndex, int length, object userData)
         {
             string text = System.Text.Encoding.UTF8.GetString(dataBytes, startIndex, length);
             return dataProvider.ParseData(text, userData);
         }
 
-        public bool ParseData(ILocalizationManager dataProvider, string dataText, object userData)
+        public override bool ParseData(ILocalizationManager dataProvider, string dataText, object userData)
         {
             if (dataText.TrimStart().StartsWith("{"))
                 return ParseJson(dataProvider, dataText);
             return ParseTsv(dataProvider, dataText);
         }
 
-        public bool ParseData(ILocalizationManager dataProvider, byte[] dataBytes, int startIndex, int length, object userData)
+        public override bool ParseData(ILocalizationManager dataProvider, byte[] dataBytes, int startIndex, int length, object userData)
         {
             string text = System.Text.Encoding.UTF8.GetString(dataBytes, startIndex, length);
             return ParseData(dataProvider, text, userData);
         }
 
-        public void ReleaseDataAsset(ILocalizationManager dataProvider, object dataAsset) { }
+        public override void ReleaseDataAsset(ILocalizationManager dataProvider, object dataAsset) { }
 
         // ── 解析 ───────────────────────────────────────────────────────────────
 

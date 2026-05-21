@@ -76,6 +76,14 @@ namespace GodotGameFramework
         [Export]
         public NodePath SceneRootPath = new NodePath();
 
+        /// <summary>资源辅助器完整类名。</summary>
+        [Export]
+        public string ResourceHelperTypeName = "GodotGameFramework.GodotResourceHelper";
+
+        /// <summary>加载资源代理辅助器完整类名。</summary>
+        [Export]
+        public string LoadResourceAgentHelperTypeName = "GodotGameFramework.GodotLoadResourceAgentHelper";
+
         // ── 内部状态 ───────────────────────────────────────────────────────────
 
         private GodotResourceManager m_ResourceManager = null;
@@ -184,11 +192,25 @@ namespace GodotGameFramework
             m_ResourceManager.SetSceneRoot(sceneRoot ?? this);
 
             // 注册辅助器
-            m_ResourceManager.SetResourceHelper(new GodotResourceHelper());
+            var resourceHelperType = GameFramework.Utility.Assembly.GetType(ResourceHelperTypeName);
+            if (resourceHelperType == null || Activator.CreateInstance(resourceHelperType) is not ResourceHelperBase resourceHelper)
+            {
+                GameFrameworkLog.Fatal($"Can not create resource helper '{ResourceHelperTypeName}'.");
+                return;
+            }
+            m_ResourceManager.SetResourceHelper(resourceHelper);
 
             // 创建并注册加载 Agent
+            var agentHelperType = GameFramework.Utility.Assembly.GetType(LoadResourceAgentHelperTypeName);
             for (int i = 0; i < Math.Max(1, AgentCount); i++)
-                m_ResourceManager.AddLoadResourceAgentHelper(new GodotLoadResourceAgentHelper());
+            {
+                if (agentHelperType == null || Activator.CreateInstance(agentHelperType) is not LoadResourceAgentHelperBase agentHelper)
+                {
+                    GameFrameworkLog.Fatal($"Can not create load resource agent helper '{LoadResourceAgentHelperTypeName}'.");
+                    return;
+                }
+                m_ResourceManager.AddLoadResourceAgentHelper(agentHelper);
+            }
 
             // PackageMode 自动初始化
             if (ResourceMode == ResourceMode.Package)
