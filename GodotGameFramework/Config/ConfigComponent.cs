@@ -12,12 +12,14 @@ namespace GodotGameFramework
     {
         private IConfigManager m_ConfigManager = null;
 
+        private string ConfigHelperTypeName => $"GodotGameFramework.{ConfigHelper}";
+
         [Export]
         public int CachedBytesSize { get; private set; } = 0;
 
-        /// <summary>配置辅助器完整类名。</summary>
+        /// <summary>配置辅助器。</summary>
         [Export]
-        public string ConfigHelperTypeName = "GodotGameFramework.DefaultConfigHelper";
+        public ConfigHelperType ConfigHelper = ConfigHelperType.DefaultConfigHelper;
 
         public int Count => m_ConfigManager.Count;
 

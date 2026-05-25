@@ -76,17 +76,20 @@ namespace GodotGameFramework
         [Export]
         public NodePath SceneRootPath = new NodePath();
 
-        /// <summary>资源辅助器完整类名。</summary>
+        /// <summary>资源辅助器。</summary>
         [Export]
-        public string ResourceHelperTypeName = "GodotGameFramework.GodotResourceHelper";
+        public ResourceHelperType ResourceHelper = ResourceHelperType.GodotResourceHelper;
 
-        /// <summary>加载资源代理辅助器完整类名。</summary>
+        /// <summary>加载资源代理辅助器。</summary>
         [Export]
-        public string LoadResourceAgentHelperTypeName = "GodotGameFramework.GodotLoadResourceAgentHelper";
+        public LoadResourceAgentHelperType LoadResourceAgentHelper = LoadResourceAgentHelperType.GodotLoadResourceAgentHelper;
 
         // ── 内部状态 ───────────────────────────────────────────────────────────
 
         private GodotResourceManager m_ResourceManager = null;
+
+        private string ResourceHelperTypeName => $"GodotGameFramework.{ResourceHelper}";
+        private string LoadResourceAgentHelperTypeName => $"GodotGameFramework.{LoadResourceAgentHelper}";
 
         /// <summary>获取当前活跃的资源管理器实例（供其他组件内部使用）。</summary>
         internal static IResourceManager Instance { get; private set; }

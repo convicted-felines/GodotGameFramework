@@ -28,11 +28,11 @@ namespace GodotGameFramework
     {
         // ── Inspector 配置 ─────────────────────────────────────────────────────
 
-        /// <summary>实体辅助器完整类名，留空则使用默认实现。</summary>
-        [Export] public string EntityHelperTypeName = "GodotGameFramework.EntityHelper";
+        /// <summary>实体辅助器。</summary>
+        [Export] public EntityHelperType EntityHelper = EntityHelperType.EntityHelper;
 
-        /// <summary>实体组辅助器完整类名，留空则使用默认实现。</summary>
-        [Export] public string EntityGroupHelperTypeName = "GodotGameFramework.EntityGroupHelper";
+        /// <summary>实体组辅助器。</summary>
+        [Export] public EntityGroupHelperType EntityGroupHelper = EntityGroupHelperType.EntityGroupHelper;
 
         /// <summary>要预先注册的实体组列表，每项包含名称及对象池参数。</summary>
         [Export] public EntityGroupConfig[] EntityGroups = Array.Empty<EntityGroupConfig>();
@@ -40,6 +40,9 @@ namespace GodotGameFramework
         // ── 内部状态 ───────────────────────────────────────────────────────────
 
         private IEntityManager m_EntityManager = null;
+
+        private string EntityHelperTypeName => $"GodotGameFramework.{EntityHelper}";
+        private string EntityGroupHelperTypeName => $"GodotGameFramework.{EntityGroupHelper}";
 
         // ── 属性代理 ───────────────────────────────────────────────────────────
 

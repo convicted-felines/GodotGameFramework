@@ -13,11 +13,14 @@ namespace GodotGameFramework
     {
         private IDataTableManager m_DataTableManager = null;
 
-        /// <summary>数据表辅助器完整类名。</summary>
-        [Export] public string DataTableHelperTypeName = "GodotGameFramework.DefaultDataTableHelper";
+        private string DataTableHelperTypeName => $"GodotGameFramework.{DataTableHelper}";
+        private string DataProviderHelperTypeName => $"GodotGameFramework.{DataProviderHelper}";
 
-        /// <summary>数据提供辅助器完整类名。</summary>
-        [Export] public string DataProviderHelperTypeName = "GodotGameFramework.DefaultDataProviderHelper";
+        /// <summary>数据表辅助器。</summary>
+        [Export] public DataTableHelperType DataTableHelper = DataTableHelperType.DefaultDataTableHelper;
+
+        /// <summary>数据提供辅助器。</summary>
+        [Export] public DataProviderHelperType DataProviderHelper = DataProviderHelperType.DefaultDataProviderHelper;
 
         public int Count => m_DataTableManager.Count;
 

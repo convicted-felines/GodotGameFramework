@@ -22,8 +22,10 @@ namespace GodotGameFramework
     {
         private INetworkManager m_NetworkManager = null;
 
-        /// <summary>默认网络频道辅助器完整类名（CreateNetworkChannel 无参重载使用）。</summary>
-        [Export] public string NetworkChannelHelperTypeName = "GodotGameFramework.DefaultNetworkChannelHelper";
+        private string NetworkChannelHelperTypeName => $"GodotGameFramework.{NetworkChannelHelper}";
+
+        /// <summary>默认网络频道辅助器（CreateNetworkChannel 无参重载使用）。</summary>
+        [Export] public NetworkChannelHelperType NetworkChannelHelper = NetworkChannelHelperType.DefaultNetworkChannelHelper;
 
         // ── 属性 ───────────────────────────────────────────────────────────────
 

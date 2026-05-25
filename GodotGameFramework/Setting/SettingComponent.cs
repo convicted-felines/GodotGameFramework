@@ -13,13 +13,15 @@ namespace GodotGameFramework
     {
         private ISettingManager m_SettingManager = null;
 
+        private string SettingHelperTypeName => $"GodotGameFramework.{SettingHelper}";
+
         /// <summary>设置文件路径（支持 user:// 协议）。</summary>
         [Export]
         public string SettingFilePath { get; set; } = "user://settings.cfg";
 
-        /// <summary>设置辅助器完整类名。</summary>
+        /// <summary>设置辅助器。</summary>
         [Export]
-        public string SettingHelperTypeName = "GodotGameFramework.DefaultSettingHelper";
+        public SettingHelperType SettingHelper = SettingHelperType.DefaultSettingHelper;
 
         public int Count => m_SettingManager.Count;
 

@@ -32,15 +32,18 @@ namespace GodotGameFramework
         /// <summary>缓冲二进制流大小（字节）；0 表示不预分配。</summary>
         [Export] public int CachedBytesSize = 0;
 
-        /// <summary>本地化辅助器完整类名。</summary>
-        [Export] public string LocalizationHelperTypeName = "GodotGameFramework.GodotLocalizationHelper";
+        /// <summary>本地化辅助器。</summary>
+        [Export] public LocalizationHelperType LocalizationHelper = LocalizationHelperType.GodotLocalizationHelper;
 
-        /// <summary>本地化数据提供辅助器完整类名。</summary>
-        [Export] public string LocalizationDataProviderHelperTypeName = "GodotGameFramework.DefaultLocalizationDataProviderHelper";
+        /// <summary>本地化数据提供辅助器。</summary>
+        [Export] public LocalizationDataProviderHelperType LocalizationDataProviderHelper = LocalizationDataProviderHelperType.DefaultLocalizationDataProviderHelper;
 
         // ── 内部状态 ───────────────────────────────────────────────────────────
 
         private ILocalizationManager m_LocalizationManager = null;
+
+        private string LocalizationHelperTypeName => $"GodotGameFramework.{LocalizationHelper}";
+        private string LocalizationDataProviderHelperTypeName => $"GodotGameFramework.{LocalizationDataProviderHelper}";
 
         // ── 属性 ───────────────────────────────────────────────────────────────
 

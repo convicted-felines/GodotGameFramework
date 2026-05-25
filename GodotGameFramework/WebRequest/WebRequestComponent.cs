@@ -26,12 +26,14 @@ namespace GodotGameFramework
         /// <summary>超时时间（秒），0 表示不超时。</summary>
         [Export] public float Timeout = 30f;
 
-        /// <summary>Web 请求代理辅助器完整类名。</summary>
-        [Export] public string WebRequestAgentHelperTypeName = "GodotGameFramework.HttpWebRequestAgentHelper";
+        /// <summary>Web 请求代理辅助器。</summary>
+        [Export] public WebRequestAgentHelperType WebRequestAgentHelper = WebRequestAgentHelperType.HttpWebRequestAgentHelper;
 
         // ── 内部状态 ───────────────────────────────────────────────────────────
 
         private IWebRequestManager m_WebRequestManager = null;
+
+        private string WebRequestAgentHelperTypeName => $"GodotGameFramework.{WebRequestAgentHelper}";
 
         // ── 属性 ───────────────────────────────────────────────────────────────
 

@@ -24,14 +24,14 @@ namespace GodotGameFramework
         /// <summary>声音组名称列表。</summary>
         [Export] public string[] SoundGroupNames = Array.Empty<string>();
 
-        /// <summary>声音辅助器完整类名。</summary>
-        [Export] public string SoundHelperTypeName = "GodotGameFramework.SoundHelper";
+        /// <summary>声音辅助器。</summary>
+        [Export] public SoundHelperType SoundHelper = SoundHelperType.SoundHelper;
 
-        /// <summary>声音组辅助器完整类名。</summary>
-        [Export] public string SoundGroupHelperTypeName = "GodotGameFramework.SoundGroupHelper";
+        /// <summary>声音组辅助器。</summary>
+        [Export] public SoundGroupHelperType SoundGroupHelper = SoundGroupHelperType.SoundGroupHelper;
 
-        /// <summary>声音代理辅助器完整类名。</summary>
-        [Export] public string SoundAgentHelperTypeName = "GodotGameFramework.SoundAgentHelper";
+        /// <summary>声音代理辅助器。</summary>
+        [Export] public SoundAgentHelperType SoundAgentHelper = SoundAgentHelperType.SoundAgentHelper;
 
         /// <summary>各声音组代理数（每组可并发播放的声音数），与 SoundGroupNames 对应。</summary>
         [Export] public int[] SoundGroupAgentCounts = Array.Empty<int>();
@@ -48,6 +48,10 @@ namespace GodotGameFramework
         // ── 内部状态 ───────────────────────────────────────────────────────────
 
         private ISoundManager m_SoundManager = null;
+
+        private string SoundHelperTypeName => $"GodotGameFramework.{SoundHelper}";
+        private string SoundGroupHelperTypeName => $"GodotGameFramework.{SoundGroupHelper}";
+        private string SoundAgentHelperTypeName => $"GodotGameFramework.{SoundAgentHelper}";
 
         // ── 属性 ───────────────────────────────────────────────────────────────
 

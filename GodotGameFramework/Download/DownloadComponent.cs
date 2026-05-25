@@ -27,12 +27,14 @@ namespace GodotGameFramework
         /// <summary>写磁盘缓冲大小（字节），达到此大小时写入文件。</summary>
         [Export] public int FlushSize = 1024 * 1024;
 
-        /// <summary>下载代理辅助器完整类名。</summary>
-        [Export] public string DownloadAgentHelperTypeName = "GodotGameFramework.HttpDownloadAgentHelper";
+        /// <summary>下载代理辅助器。</summary>
+        [Export] public DownloadAgentHelperType DownloadAgentHelper = DownloadAgentHelperType.HttpDownloadAgentHelper;
 
         // ── 内部状态 ───────────────────────────────────────────────────────────
 
         private IDownloadManager m_DownloadManager = null;
+
+        private string DownloadAgentHelperTypeName => $"GodotGameFramework.{DownloadAgentHelper}";
 
         // ── 属性 ───────────────────────────────────────────────────────────────
 

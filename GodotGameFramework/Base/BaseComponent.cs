@@ -16,17 +16,13 @@ namespace GodotGameFramework
         [Export] private bool m_RunInBackground = true;
         [Export] private bool m_NeverSleep = true;
 
-        /// <summary>日志辅助器完整类名。</summary>
-        [Export] public string LogHelperTypeName = "GodotGameFramework.Utility.GodotLogHelper";
+        [Export] public LogHelperType LogHelper = LogHelperType.GodotLogHelper;
 
-        /// <summary>文本辅助器完整类名。</summary>
-        [Export] public string TextHelperTypeName = "GodotGameFramework.Utility.DefaultTextHelper";
+        [Export] public TextHelperType TextHelper = TextHelperType.DefaultTextHelper;
 
-        /// <summary>压缩辅助器完整类名。</summary>
-        [Export] public string CompressionHelperTypeName = "GodotGameFramework.Utility.DefaultCompressionHelper";
+        [Export] public CompressionHelperType CompressionHelper = CompressionHelperType.DefaultCompressionHelper;
 
-        /// <summary>JSON 辅助器完整类名。</summary>
-        [Export] public string JsonHelperTypeName = "GodotGameFramework.Utility.DefaultJsonHelper";
+        [Export] public JsonHelperType JsonHelper = JsonHelperType.DefaultJsonHelper;
 
         private float m_GameSpeedBeforePause = 1f;
 
@@ -91,26 +87,25 @@ namespace GodotGameFramework
 
         private void InitTextHelper()
         {
-            var type = GameFramework.Utility.Assembly.GetType(TextHelperTypeName);
+            string typeName = $"GodotGameFramework.Utility.{TextHelper}";
+            var type = GameFramework.Utility.Assembly.GetType(typeName);
             if (type == null || Activator.CreateInstance(type) is not TextHelperBase helper)
             {
-                GD.PrintErr($"Can not create text helper '{TextHelperTypeName}'.");
+                GD.PrintErr($"Can not create text helper '{typeName}'.");
                 return;
             }
             GameFramework.Utility.Text.SetTextHelper(helper);
         }
 
-        private static void InitVersionHelper()
-        {
-            // 可通过 Export 属性注入自定义 VersionHelper；默认不设置
-        }
+        private static void InitVersionHelper() { }
 
         private void InitLogHelper()
         {
-            var type = GameFramework.Utility.Assembly.GetType(LogHelperTypeName);
+            string typeName = $"GodotGameFramework.Utility.{LogHelper}";
+            var type = GameFramework.Utility.Assembly.GetType(typeName);
             if (type == null || Activator.CreateInstance(type) is not LogHelperBase helper)
             {
-                GD.PrintErr($"Can not create log helper '{LogHelperTypeName}'.");
+                GD.PrintErr($"Can not create log helper '{typeName}'.");
                 return;
             }
             GameFrameworkLog.SetLogHelper(helper);
@@ -118,10 +113,11 @@ namespace GodotGameFramework
 
         private void InitCompressionHelper()
         {
-            var type = GameFramework.Utility.Assembly.GetType(CompressionHelperTypeName);
+            string typeName = $"GodotGameFramework.Utility.{CompressionHelper}";
+            var type = GameFramework.Utility.Assembly.GetType(typeName);
             if (type == null || Activator.CreateInstance(type) is not CompressionHelperBase helper)
             {
-                GameFrameworkLog.Fatal($"Can not create compression helper '{CompressionHelperTypeName}'.");
+                GameFrameworkLog.Fatal($"Can not create compression helper '{typeName}'.");
                 return;
             }
             GameFramework.Utility.Compression.SetCompressionHelper(helper);
@@ -129,10 +125,11 @@ namespace GodotGameFramework
 
         private void InitJsonHelper()
         {
-            var type = GameFramework.Utility.Assembly.GetType(JsonHelperTypeName);
+            string typeName = $"GodotGameFramework.Utility.{JsonHelper}";
+            var type = GameFramework.Utility.Assembly.GetType(typeName);
             if (type == null || Activator.CreateInstance(type) is not JsonHelperBase helper)
             {
-                GameFrameworkLog.Fatal($"Can not create JSON helper '{JsonHelperTypeName}'.");
+                GameFrameworkLog.Fatal($"Can not create JSON helper '{typeName}'.");
                 return;
             }
             GameFramework.Utility.Json.SetJsonHelper(helper);

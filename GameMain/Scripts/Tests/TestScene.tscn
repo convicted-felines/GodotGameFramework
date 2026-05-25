@@ -1,0 +1,31 @@
+[gd_scene format=3 uid="uid://test_runner_scene"]
+
+[ext_resource type="Script" path="res://GodotGameFramework/Base/BaseComponent.cs" id="1_base"]
+[ext_resource type="Script" path="res://GodotGameFramework/Event/EventComponent.cs" id="2_event"]
+[ext_resource type="Script" path="res://GodotGameFramework/Setting/SettingComponent.cs" id="3_setting"]
+[ext_resource type="Script" path="res://GodotGameFramework/ReferencePool/ReferencePoolComponent.cs" id="4_refpool"]
+[ext_resource type="Script" path="res://GodotGameFramework/ObjectPool/ObjectPoolComponent.cs" id="5_objpool"]
+[ext_resource type="Script" path="res://GameMain/Scripts/Tests/TestRunner.cs" id="6_runner"]
+
+[node name="TestScene" type="Node"]
+
+[node name="GameFramework" type="Node" parent="."]
+
+[node name="BaseComponent" type="Node" parent="GameFramework"]
+script = ExtResource("1_base")
+
+[node name="EventComponent" type="Node" parent="GameFramework"]
+script = ExtResource("2_event")
+
+[node name="SettingComponent" type="Node" parent="GameFramework"]
+script = ExtResource("3_setting")
+
+[node name="ReferencePoolComponent" type="Node" parent="GameFramework"]
+script = ExtResource("4_refpool")
+
+[node name="ObjectPoolComponent" type="Node" parent="GameFramework"]
+script = ExtResource("5_objpool")
+
+[node name="TestRunner" type="Node" parent="."]
+script = ExtResource("6_runner")
+Module = 0

@@ -27,11 +27,11 @@ namespace GodotGameFramework
     {
         // ── Inspector 配置 ─────────────────────────────────────────────────────
 
-        /// <summary>UI 界面辅助器完整类名。</summary>
-        [Godot.Export] public string UIFormHelperTypeName = "GodotGameFramework.UIFormHelper";
+        /// <summary>UI 界面辅助器。</summary>
+        [Godot.Export] public UIFormHelperType UIFormHelper = UIFormHelperType.UIFormHelper;
 
-        /// <summary>UI 组辅助器完整类名。</summary>
-        [Godot.Export] public string UIGroupHelperTypeName = "GodotGameFramework.UIGroupHelper";
+        /// <summary>UI 组辅助器。</summary>
+        [Godot.Export] public UIGroupHelperType UIGroupHelper = UIGroupHelperType.UIGroupHelper;
 
         /// <summary>要预先注册的 UI 组名称列表（顺序与 UIGroupDepths 对应）。</summary>
         [Godot.Export] public string[] UIGroupNames = Array.Empty<string>();
@@ -54,6 +54,9 @@ namespace GodotGameFramework
         // ── 内部状态 ───────────────────────────────────────────────────────────
 
         private IUIManager m_UIManager = null;
+
+        private string UIFormHelperTypeName => $"GodotGameFramework.{UIFormHelper}";
+        private string UIGroupHelperTypeName => $"GodotGameFramework.{UIGroupHelper}";
 
         // ── 属性代理 ───────────────────────────────────────────────────────────
 

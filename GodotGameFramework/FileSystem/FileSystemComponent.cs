@@ -14,9 +14,11 @@ namespace GodotGameFramework
     {
         private IFileSystemManager m_FileSystemManager = null;
 
-        /// <summary>文件系统辅助器完整类名。</summary>
+        private string FileSystemHelperTypeName => $"GodotGameFramework.{FileSystemHelper}";
+
+        /// <summary>文件系统辅助器。</summary>
         [Export]
-        public string FileSystemHelperTypeName = "GodotGameFramework.GodotFileSystemHelper";
+        public FileSystemHelperType FileSystemHelper = FileSystemHelperType.GodotFileSystemHelper;
 
         public int Count => m_FileSystemManager.Count;
 
