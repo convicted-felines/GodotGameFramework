@@ -12,7 +12,7 @@ namespace GameFramework
     /// </summary>
     public static partial class GameFrameworkLog
     {
-        private static ILogHelper s_LogHelper = null;
+        private static ILogHelper? s_LogHelper = null;
 
         /// <summary>
         /// 设置游戏框架日志辅助器。
