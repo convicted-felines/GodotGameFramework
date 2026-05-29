@@ -40,12 +40,12 @@ framework/
 │   └── WebRequest/           # WebRequest 组件 + Helper
 │
 └── Tools/
-    └── DataTableGenerator/   # 独立命令行工具（.NET 8 控制台程序）
-        ├── DataTableGenerator.csproj
-        ├── DataTableGenerator.cs    # Excel→TSV / TSV→bytes / TSV→C# 生成逻辑
-        ├── DataTableProcessor.cs    # TSV 解析核心
-        ├── DataTableProcessor.*.cs  # 各类型处理器（id/string/int/bool/float…）
-        └── Program.cs               # 命令行入口
+	└── DataTableGenerator/   # 独立命令行工具（.NET 8 控制台程序）
+		├── DataTableGenerator.csproj
+		├── DataTableGenerator.cs    # Excel→TSV / TSV→bytes / TSV→C# 生成逻辑
+		├── DataTableProcessor.cs    # TSV 解析核心
+		├── DataTableProcessor.*.cs  # 各类型处理器（id/string/int/bool/float…）
+		└── Program.cs               # 命令行入口
 ```
 
 ### 关键配置说明
@@ -345,7 +345,7 @@ var fs = GameEntry.GetComponent<FileSystemComponent>();
 
 // 创建新包（写入模式）
 IFileSystem vfs = fs.CreateFileSystem("user://data.vfs",
-    FileSystemAccess.ReadWrite, maxFileCount: 128, maxBlockCount: 256);
+	FileSystemAccess.ReadWrite, maxFileCount: 128, maxBlockCount: 256);
 
 vfs.WriteFile("greeting.txt", System.Text.Encoding.UTF8.GetBytes("Hello VFS"));
 fs.DestroyFileSystem(vfs);
@@ -362,26 +362,26 @@ var res = GameEntry.GetComponent<ResourceComponent>();
 
 // PackedScene 异步加载
 res.LoadAsset("res://Prefabs/Hero.tscn",
-    new LoadAssetCallbacks(
-        onSuccess: (name, asset, duration, userData) => {
-            AddChild(((PackedScene)asset).Instantiate());
-        },
-        onFailure: (name, status, msg, userData) => {
-            GD.PrintErr($"Load failed: {msg}");
-        }
-    )
+	new LoadAssetCallbacks(
+		onSuccess: (name, asset, duration, userData) => {
+			AddChild(((PackedScene)asset).Instantiate());
+		},
+		onFailure: (name, status, msg, userData) => {
+			GD.PrintErr($"Load failed: {msg}");
+		}
+	)
 );
 
 // 二进制文件异步加载
 res.LoadBinary("res://Data/config.bytes",
-    new LoadBinaryCallbacks(
-        (name, bytes, duration, userData) => { /* 处理 bytes */ }
-    )
+	new LoadBinaryCallbacks(
+		(name, bytes, duration, userData) => { /* 处理 bytes */ }
+	)
 );
 
 // UpdatableMode 热更
 res.ApplyResources("user://patch_v2.pck",
-    (packPath, success) => GD.Print($"Patch applied: {success}")
+	(packPath, success) => GD.Print($"Patch applied: {success}")
 );
 ```
 
@@ -414,9 +414,9 @@ dotnet run -- code  --namespace MyGame                     # TSV → C# 代码
 # 第4行起：数据行（首列以 # 开头的行为注释行，跳过）
 
 #注释   Id     Name    Level   Attack
-        id     string  int     float
-                               0
-        编号   名称    等级    攻击力
+		id     string  int     float
+							   0
+		编号   名称    等级    攻击力
 1001    英雄1  15      25.5
 1002    英雄2  20      30.0
 ```
@@ -430,7 +430,7 @@ dotnet run -- code  --namespace MyGame                     # TSV → C# 代码
 │              Godot 游戏逻辑层                 │
 │         (Framework.csproj / Node 脚本)        │
 └────────────────┬────────────────────────────┘
-                 │ 调用
+				 │ 调用
 ┌────────────────▼────────────────────────────┐
 │          GodotGameFramework 适配层            │  ← 除 Debugger 外已全部完成
 │   实现各 IXxxHelper 接口，绑定 Godot API      │
@@ -440,7 +440,7 @@ dotnet run -- code  --namespace MyGame                     # TSV → C# 代码
 │   WebRequest / Config / Setting / FileSystem│
 │   ObjectPool / ReferencePool / Variable     │
 └────────────────┬────────────────────────────┘
-                 │ 实现接口
+				 │ 实现接口
 ┌────────────────▼────────────────────────────┐
 │         GameFramework 核心层                  │  ← 已完成（0 修改）
 │    纯 C# 逻辑，无任何引擎依赖，0 编译错误      │
