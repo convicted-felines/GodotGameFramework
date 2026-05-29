@@ -35,7 +35,7 @@ namespace GameMain
 
             if (m_PreloadDone)
             {
-                ChangeState<ProcedureChangeScene>(procedureOwner);
+                ChangeState<ProcedureMenu>(procedureOwner);
             }
         }
 

@@ -11,6 +11,9 @@
 [ext_resource type="Script" uid="uid://b38wkfr4xwo5" path="res://GodotGameFramework/DataTable/DataTableComponent.cs" id="6_lkeb4"]
 [ext_resource type="Script" uid="uid://bpp2brj3r1qbl" path="res://GodotGameFramework/Resource/ResourceComponent.cs" id="9_5xj71"]
 [ext_resource type="Script" uid="uid://dst66iclrgixy" path="res://GodotGameFramework/Setting/SettingComponent.cs" id="10_mvr3t"]
+[ext_resource type="Script" uid="uid://d2216t1dcrdlx" path="res://GameMain/Scripts/Base/GameEntry.cs" id="11_entry"]
+[ext_resource type="Script" uid="uid://chm6no63qcsmc" path="res://GodotGameFramework/ObjectPool/ObjectPoolComponent.cs" id="12_objpool"]
+[ext_resource type="Script" uid="uid://bj5gh0v6a3a" path="res://GodotGameFramework/ReferencePool/ReferencePoolComponent.cs" id="13_refpool"]
 
 [sub_resource type="Resource" id="Resource_5xj71"]
 script = ExtResource("6_5ehnu")
@@ -23,11 +26,18 @@ Name = "Character"
 metadata/_custom_type_script = "uid://bald25kada5re"
 
 [node name="GameEntry" type="Node3D" unique_id=1007060803]
+script = ExtResource("11_entry")
 
 [node name="GameFramework" type="Node" parent="." unique_id=1206382738]
 
 [node name="BaseComponent" type="Node" parent="GameFramework" unique_id=134997338]
 script = ExtResource("1_syaif")
+
+[node name="ReferencePoolComponent" type="Node" parent="GameFramework" unique_id=1111111111]
+script = ExtResource("13_refpool")
+
+[node name="ObjectPoolComponent" type="Node" parent="GameFramework" unique_id=2222222222]
+script = ExtResource("12_objpool")
 
 [node name="ConfigComponent" type="Node" parent="GameFramework" unique_id=143604383]
 script = ExtResource("2_wuog5")
@@ -44,12 +54,16 @@ EntityGroups = [SubResource("Resource_5xj71"), SubResource("Resource_mvr3t")]
 
 [node name="UIComponent" type="Node" parent="GameFramework" unique_id=1461927318]
 script = ExtResource("5_5dcsp")
+UIGroupNames = ["Menu"]
+UIGroupDepths = [1]
 
 [node name="DataTableComponent" type="Node" parent="GameFramework" unique_id=1732410837]
 script = ExtResource("6_lkeb4")
 
 [node name="ProcedureComponent" type="Node" parent="GameFramework" unique_id=1843352324]
 script = ExtResource("3_2kaif")
+m_AvailableProcedureTypeNames = ["GameMain.ProcedureLaunch", "GameMain.ProcedureSplash", "GameMain.ProcedurePreload", "GameMain.ProcedureChangeScene", "GameMain.ProcedureMenu", "GameMain.ProcedureMain"]
+m_EntranceProcedureTypeName = "GameMain.ProcedureLaunch"
 
 [node name="ResourceComponent" type="Node" parent="GameFramework" unique_id=539364055]
 script = ExtResource("9_5xj71")

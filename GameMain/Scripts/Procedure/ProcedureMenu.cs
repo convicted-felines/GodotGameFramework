@@ -6,16 +6,22 @@
 using GameFramework;
 using GameFramework.Fsm;
 using GameFramework.Procedure;
+using GameFramework.UI;
+using GodotGameFramework;
 
 namespace GameMain
 {
     /// <summary>
     /// 流程：菜单。
-    /// 打开主菜单 UI，等待玩家选择开始游戏后跳转到场景切换流程。
+    /// 打开主菜单 UI，等待玩家选择开始游戏后跳转到主游戏流程。
     /// </summary>
     public class ProcedureMenu : ProcedureBase
     {
+        public const string MenuFormAssetName = "res://GameMain/UI/MenuForm.tscn";
+        public const string MenuUIGroupName = "Menu";
+
         private bool m_StartGame = false;
+        private int m_MenuFormSerialId = -1;
 
         public override bool UseNativeDialog => false;
 
@@ -30,15 +36,21 @@ namespace GameMain
             base.OnEnter(procedureOwner);
 
             m_StartGame = false;
+            m_MenuFormSerialId = -1;
 
-            // TODO: 打开主菜单 UI
-            // GameEntry.UI.OpenUIForm(UIFormId.MenuForm, this);
-            GameFrameworkLog.Info("ProcedureMenu: entered, waiting for player to start game.");
+            GameEntry.UI.OpenUIFormSuccess += OnOpenUIFormSuccess;
+            m_MenuFormSerialId = GameEntry.UI.OpenUIForm(MenuFormAssetName, MenuUIGroupName, this);
+
+            GameFrameworkLog.Info("ProcedureMenu: entered, opening menu UI.");
         }
 
         protected override void OnLeave(IFsm<IProcedureManager> procedureOwner, bool isShutdown)
         {
-            // TODO: 关闭主菜单 UI（如未被场景切换自动卸载）
+            GameEntry.UI.OpenUIFormSuccess -= OnOpenUIFormSuccess;
+
+            if (GameEntry.UI.HasUIForm(m_MenuFormSerialId))
+                GameEntry.UI.CloseUIForm(m_MenuFormSerialId);
+
             base.OnLeave(procedureOwner, isShutdown);
         }
 
@@ -49,9 +61,15 @@ namespace GameMain
             if (!m_StartGame)
                 return;
 
-            // 设置目标场景 ID 后切换到 ChangeScene 流程
-            // procedureOwner.SetData<GodotGameFramework.VarInt32>("NextSceneId", GameSceneId);
-            ChangeState<ProcedureChangeScene>(procedureOwner);
+            ChangeState<ProcedureMain>(procedureOwner);
+        }
+
+        private void OnOpenUIFormSuccess(object sender, OpenUIFormSuccessEventArgs e)
+        {
+            if (e.UIForm.SerialId != m_MenuFormSerialId)
+                return;
+
+            GameFrameworkLog.Info("ProcedureMenu: menu UI opened.");
         }
     }
 }
