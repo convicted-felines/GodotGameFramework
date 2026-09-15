@@ -90,9 +90,8 @@ namespace GameMain
 
         private static string GetSceneAssetName(int sceneId)
         {
-            // TODO: 通过数据表 DRScene 查找对应路径
-            // return GameEntry.DataTable.GetDataTable<DRScene>().GetDataRow(sceneId).AssetName;
-            return string.Empty;
+            DRScene sceneRow = GameEntry.DataTable.GetDataRow<DRScene>(sceneId);
+            return sceneRow?.AssetName ?? string.Empty;
         }
 
         private void OnLoadSceneSuccess(object sender, GameFrameworkEventArgs e)

@@ -9,24 +9,23 @@ namespace DataTableGenerator
     /// <summary>
     /// 数据表处理器。解析 Tab 分隔的文本数据表文件并生成二进制和C#代码输出。
     ///
-    /// 文本格式（行索引从0开始）：
-    ///   行0：列名（第0列固定为注释列）
-    ///   行1：列类型（id / int / string / bool / float / ...）
-    ///   行2：默认值（可留空）
+    /// 文本格式（行索引从0开始，与 Unity GameFramework 一致）：
+    ///   行0：标题注释行
+    ///   行1：列名（第0列固定为 #）
+    ///   行2：列类型（id / int / string / bool / float / ...）
     ///   行3：列注释说明
     ///   行4+：实际数据
     /// </summary>
     public sealed partial class DataTableProcessor
     {
-        private const int NameRow = 0;
-        private const int TypeRow = 1;
-        private const int DefaultValueRow = 2;
+        private const int NameRow = 1;
+        private const int TypeRow = 2;
         private const int CommentRow = 3;
         private const int ContentStartRow = 4;
         private const int IdColumn = 1;
 
         private static readonly Encoding s_Encoding = new UTF8Encoding(false);
-        private static readonly Regex s_NameRegex = new Regex(@"^[A-Za-z][A-Za-z0-9_]*$");
+        private static readonly Regex s_NameRegex = new Regex(@"^[A-Z][A-Za-z0-9_]*$");
 
         private readonly string[] m_NameRow;
         private readonly string[] m_TypeRow;
@@ -56,7 +55,7 @@ namespace DataTableGenerator
             // parse header rows
             m_NameRow = SplitLine(lines[NameRow]);
             m_TypeRow = SplitLine(lines[TypeRow]);
-            m_DefaultValueRow = lines.Length > DefaultValueRow ? SplitLine(lines[DefaultValueRow]) : Array.Empty<string>();
+            m_DefaultValueRow = Array.Empty<string>();
             m_CommentRow = lines.Length > CommentRow ? SplitLine(lines[CommentRow]) : Array.Empty<string>();
 
             int columnCount = m_TypeRow.Length;
@@ -194,7 +193,15 @@ namespace DataTableGenerator
             return m_Strings[index];
         }
 
-        public bool IsIdColumn(int rawColumn) => rawColumn == IdColumn && m_DataProcessors[rawColumn].IsId;
+        public bool IsIdColumn(int rawColumn)
+        {
+            if (rawColumn == IdColumn)
+            {
+                return true;
+            }
+
+            return rawColumn < m_DataProcessors.Length && m_DataProcessors[rawColumn].IsId;
+        }
 
         public bool IsCommentColumn(int rawColumn) => rawColumn < m_DataProcessors.Length && m_DataProcessors[rawColumn].IsComment;
 
@@ -230,6 +237,11 @@ namespace DataTableGenerator
                 }
 
                 string name = GetName(col);
+                if (string.IsNullOrEmpty(name) || name == "#")
+                {
+                    continue;
+                }
+
                 if (!s_NameRegex.IsMatch(name))
                 {
                     Console.Error.WriteLine($"Column name '{name}' at index {col} is invalid.");
@@ -251,7 +263,7 @@ namespace DataTableGenerator
         }
 
         /// <summary>
-        /// 生成二进制数据文件。格式：4字节行数 + 每行 [4字节长度 + 行字节]
+        /// 生成二进制数据文件。格式：每行 [7-bit 编码长度 + 行字节]（与 Unity GameFramework 一致）
         /// </summary>
         public bool GenerateDataFile(string outputFileName)
         {
@@ -266,11 +278,10 @@ namespace DataTableGenerator
                 using var stream = new FileStream(outputFileName, FileMode.Create, FileAccess.Write);
                 using var writer = new BinaryWriter(stream, s_Encoding);
 
-                writer.Write(RawRowCount);
                 for (int row = 0; row < RawRowCount; row++)
                 {
                     byte[] rowBytes = GetRowBytes(row);
-                    writer.Write(rowBytes.Length);
+                    writer.Write7BitEncodedInt(rowBytes.Length);
                     writer.Write(rowBytes);
                 }
 

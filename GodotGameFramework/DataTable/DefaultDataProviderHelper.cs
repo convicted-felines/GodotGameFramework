@@ -71,22 +71,22 @@ namespace GodotGameFramework
 
         /// <summary>
         /// 解析数据表二进制流。
-        /// 二进制格式：4字节行数 + 每行 [4字节长度 + 行字节数据]
+        /// 二进制格式：每行 [7-bit 编码长度 + 行字节数据]（与 Unity GameFramework 一致）
         /// </summary>
         public override bool ParseData(DataTableBase dataProviderOwner, byte[] dataBytes, int startIndex, int length, object userData)
         {
             using var memoryStream = new MemoryStream(dataBytes, startIndex, length, false);
             using var binaryReader = new BinaryReader(memoryStream, s_Encoding);
 
-            int rowCount = binaryReader.ReadInt32();
-            for (int i = 0; i < rowCount; i++)
+            while (binaryReader.BaseStream.Position < binaryReader.BaseStream.Length)
             {
-                int rowLength = binaryReader.ReadInt32();
-                byte[] rowBytes = binaryReader.ReadBytes(rowLength);
-                if (!dataProviderOwner.AddDataRow(rowBytes, 0, rowLength, userData))
+                int dataRowBytesLength = binaryReader.Read7BitEncodedInt32();
+                if (!dataProviderOwner.AddDataRow(dataBytes, (int)binaryReader.BaseStream.Position, dataRowBytesLength, userData))
                 {
                     return false;
                 }
+
+                binaryReader.BaseStream.Position += dataRowBytesLength;
             }
 
             return true;

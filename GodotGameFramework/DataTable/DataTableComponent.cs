@@ -52,6 +52,12 @@ namespace GodotGameFramework
                 return;
             }
             m_DataTableManager.SetDataTableHelper(dataTableHelper);
+
+            var resourceManager = ResourceComponent.Instance;
+            if (resourceManager != null)
+            {
+                m_DataTableManager.SetResourceManager(resourceManager);
+            }
         }
 
         public void SetResourceManager(GameFramework.Resource.IResourceManager resourceManager)

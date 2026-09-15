@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using DocumentFormat.OpenXml.Packaging;
@@ -26,13 +27,111 @@ namespace DataTableGenerator
 
         // ── 路径默认值（由 Program.cs 覆盖）────────────────────────────────────
 
-        public static string DataTableTextPath = "DataTables/Text";
-        public static string DataTableBytesPath = "DataTables/Bytes";
-        public static string DataTableCodePath = "DataTables/Code";
+        public static string DataTableTextPath = "MainGame/DataTables/Text";
+        public static string DataTableBytesPath = "MainGame/DataTables/Bytes";
+        public static string DataTableCodePath = "MainGame/Scripts/DataTable";
+        public static string DataTableExcelPath = "MainGame/DataTables/Excel";
+        public static string DataTableNamesFilePath = "MainGame/DataTables/DataTableNames.txt";
         public static string CodeNamespace = "GameMain";
         public static string CodeBaseClass = "DataTableRowBase";
+        public static string ProjectRoot = ".";
 
         // ── 1. Excel → TSV ──────────────────────────────────────────────────────
+
+        /// <summary>
+        /// 将 Excel 目录下所有 .xlsx/.xlsm 文件导出为 TSV（对应 Unity 菜单 A）。
+        /// </summary>
+        public static int ExportAllExcelFromFolder(string? excelDir = null, string? outputDir = null)
+        {
+            excelDir ??= ResolvePath(DataTableExcelPath);
+            outputDir ??= ResolvePath(DataTableTextPath);
+
+            if (!Directory.Exists(excelDir))
+            {
+                throw new Exception($"Excel folder not found: {excelDir}");
+            }
+
+            Directory.CreateDirectory(outputDir);
+
+            string[] excelFiles = Directory.GetFiles(excelDir)
+                .Where(f =>
+                {
+                    string name = Path.GetFileName(f);
+                    if (name.StartsWith("~$", StringComparison.Ordinal))
+                    {
+                        return false;
+                    }
+
+                    return f.EndsWith(".xlsx", StringComparison.OrdinalIgnoreCase) ||
+                           f.EndsWith(".xlsm", StringComparison.OrdinalIgnoreCase);
+                })
+                .ToArray();
+
+            if (excelFiles.Length == 0)
+            {
+                Console.WriteLine($"No Excel files found in '{excelDir}'.");
+                return 0;
+            }
+
+            var sheetNameToFiles = new Dictionary<string, List<string>>(StringComparer.Ordinal);
+            foreach (string excelFile in excelFiles)
+            {
+                try
+                {
+                    foreach (string sheetName in GetSheetNamesFromExcel(excelFile))
+                    {
+                        if (!sheetNameToFiles.TryGetValue(sheetName, out List<string>? files))
+                        {
+                            files = new List<string>();
+                            sheetNameToFiles[sheetName] = files;
+                        }
+
+                        files.Add(excelFile);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.Error.WriteLine(FormatExcelOpenError(excelFile, ex));
+                }
+            }
+
+            var duplicateSheetNames = new HashSet<string>(
+                sheetNameToFiles.Where(kv => kv.Value.Count > 1).Select(kv => kv.Key),
+                StringComparer.Ordinal);
+
+            if (duplicateSheetNames.Count > 0)
+            {
+                Console.WriteLine($"Duplicate sheet names detected, will add file suffix: {string.Join(", ", duplicateSheetNames)}");
+            }
+
+            int exportedCount = 0;
+            int failedFileCount = 0;
+            foreach (string excelFile in excelFiles)
+            {
+                try
+                {
+                    exportedCount += ExportSheetsFromExcel(excelFile, outputDir, duplicateSheetNames);
+                }
+                catch (Exception ex)
+                {
+                    failedFileCount++;
+                    Console.Error.WriteLine(FormatExcelOpenError(excelFile, ex));
+                }
+            }
+
+            if (failedFileCount > 0 && exportedCount == 0)
+            {
+                throw new Exception($"Excel export failed: {failedFileCount} file(s) could not be opened.");
+            }
+
+            Console.WriteLine($"Excel export complete: {exportedCount} sheet(s) -> {outputDir}");
+            if (failedFileCount > 0)
+            {
+                Console.WriteLine($"Warning: {failedFileCount} Excel file(s) were skipped due to errors.");
+            }
+
+            return exportedCount;
+        }
 
         /// <summary>
         /// 将 Excel 文件所有 Sheet 导出为 TSV 文本文件。
@@ -41,12 +140,19 @@ namespace DataTableGenerator
         /// <param name="outputDir">输出目录（默认使用 DataTableTextPath）。</param>
         public static void ExportExcelToText(string excelPath, string? outputDir = null)
         {
-            outputDir ??= DataTableTextPath;
+            outputDir ??= ResolvePath(DataTableTextPath);
             Directory.CreateDirectory(outputDir);
 
             Console.WriteLine($"Exporting Excel: {excelPath}");
+            ExportSheetsFromExcel(excelPath, outputDir, null);
+        }
 
-            using var document = SpreadsheetDocument.Open(excelPath, false);
+        private static int ExportSheetsFromExcel(string excelPath, string outputDir, HashSet<string>? duplicateSheetNames)
+        {
+            int count = 0;
+            string fileNameWithoutExt = Path.GetFileNameWithoutExtension(excelPath);
+
+            using SpreadsheetDocument document = OpenExcelReadOnly(excelPath);
             var workbookPart = document.WorkbookPart
                 ?? throw new Exception("Excel workbook part is null.");
 
@@ -56,14 +162,116 @@ namespace DataTableGenerator
             foreach (Sheet sheet in sheets)
             {
                 string sheetName = sheet.Name?.Value ?? "Sheet";
-                string outputFile = Path.Combine(outputDir, sheetName + ".txt");
+                string outputFileName = duplicateSheetNames != null && duplicateSheetNames.Contains(sheetName)
+                    ? $"{sheetName}_{fileNameWithoutExt}.txt"
+                    : $"{sheetName}.txt";
+                string outputFile = Path.Combine(outputDir, outputFileName);
 
                 var worksheetPart = (WorksheetPart)workbookPart.GetPartById(sheet.Id!.Value!);
                 string tsv = ReadSheetAsTsv(worksheetPart, sharedStrings);
 
                 File.WriteAllText(outputFile, tsv, new UTF8Encoding(false));
-                Console.WriteLine($"  Exported sheet '{sheetName}' → {outputFile}");
+                Console.WriteLine($"  Exported sheet '{sheetName}' -> {outputFile}");
+                count++;
             }
+
+            return count;
+        }
+
+        private static List<string> GetSheetNamesFromExcel(string excelPath)
+        {
+            using SpreadsheetDocument document = OpenExcelReadOnly(excelPath);
+            var workbookPart = document.WorkbookPart
+                ?? throw new Exception("Excel workbook part is null.");
+
+            return workbookPart.Workbook.Descendants<Sheet>()
+                .Select(s => s.Name?.Value ?? "Sheet")
+                .ToList();
+        }
+
+        /// <summary>
+        /// 以共享只读方式打开 Excel，允许 Excel/WPS 正在编辑时读取。
+        /// </summary>
+        private static SpreadsheetDocument OpenExcelReadOnly(string excelPath)
+        {
+            var stream = new FileStream(excelPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+            return SpreadsheetDocument.Open(stream, false);
+        }
+
+        private static string FormatExcelOpenError(string excelPath, Exception ex)
+        {
+            string fileName = Path.GetFileName(excelPath);
+            if (IsFileLockedException(ex))
+            {
+                return $"Error: Cannot read '{fileName}' because it is open in another program. Please close Excel/WPS and try again.";
+            }
+
+            return $"Error: Failed to read '{fileName}': {ex.Message}";
+        }
+
+        private static bool IsFileLockedException(Exception ex)
+        {
+            for (Exception? current = ex; current != null; current = current.InnerException)
+            {
+                if (current is IOException ioEx &&
+                    (ioEx.Message.Contains("being used by another process", StringComparison.OrdinalIgnoreCase) ||
+                     ioEx.Message.Contains("used by another process", StringComparison.OrdinalIgnoreCase)))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        // ── 2. TSV → .bytes ─────────────────────────────────────────────────────
+
+        /// <summary>
+        /// 读取数据表名称列表（对应 ProcedurePreload.DataTableNames）。
+        /// </summary>
+        public static string[] LoadDataTableNames(string? namesFile = null)
+        {
+            namesFile ??= ResolvePath(DataTableNamesFilePath);
+            if (!File.Exists(namesFile))
+            {
+                throw new Exception($"Data table names file not found: {namesFile}");
+            }
+
+            return File.ReadAllLines(namesFile, Encoding.UTF8)
+                .Select(line => line.Trim())
+                .Where(line => !string.IsNullOrEmpty(line) && !line.StartsWith("#", StringComparison.Ordinal))
+                .ToArray();
+        }
+
+        /// <summary>
+        /// 为指定名称列表生成 .bytes 和 C# 代码（对应 Unity 菜单 B）。
+        /// </summary>
+        public static void GenerateDataTables(string[] dataTableNames, string? textDir = null, string? bytesDir = null, string? codeDir = null)
+        {
+            textDir ??= ResolvePath(DataTableTextPath);
+            bytesDir ??= ResolvePath(DataTableBytesPath);
+            codeDir ??= ResolvePath(DataTableCodePath);
+
+            foreach (string tableName in dataTableNames)
+            {
+                string txtFile = Path.Combine(textDir, tableName + ".txt");
+                if (!File.Exists(txtFile))
+                {
+                    Console.Error.WriteLine($"Text file not found for table '{tableName}': {txtFile}");
+                    continue;
+                }
+
+                GenerateDataFile(txtFile, bytesDir);
+                GenerateCodeFile(txtFile, codeDir);
+            }
+        }
+
+        /// <summary>
+        /// 为名称列表文件中的表生成 .bytes 和 C# 代码。
+        /// </summary>
+        public static void GenerateDataTablesFromNamesFile(string? namesFile = null, string? textDir = null, string? bytesDir = null, string? codeDir = null)
+        {
+            GenerateDataTables(LoadDataTableNames(namesFile), textDir, bytesDir, codeDir);
         }
 
         // ── 2. TSV → .bytes ─────────────────────────────────────────────────────
@@ -75,8 +283,8 @@ namespace DataTableGenerator
         /// <param name="bytesDir">二进制输出目录（默认 DataTableBytesPath）。</param>
         public static void GenerateAllDataFiles(string? textDir = null, string? bytesDir = null)
         {
-            textDir ??= DataTableTextPath;
-            bytesDir ??= DataTableBytesPath;
+            textDir ??= ResolvePath(DataTableTextPath);
+            bytesDir ??= ResolvePath(DataTableBytesPath);
             Directory.CreateDirectory(bytesDir);
 
             foreach (string txtFile in Directory.GetFiles(textDir, "*.txt"))
@@ -90,7 +298,7 @@ namespace DataTableGenerator
         /// </summary>
         public static void GenerateDataFile(string txtFile, string? bytesDir = null)
         {
-            bytesDir ??= DataTableBytesPath;
+            bytesDir ??= ResolvePath(DataTableBytesPath);
             Directory.CreateDirectory(bytesDir);
 
             string tableName = Path.GetFileNameWithoutExtension(txtFile);
@@ -124,8 +332,8 @@ namespace DataTableGenerator
         /// <param name="codeDir">代码输出目录（默认 DataTableCodePath）。</param>
         public static void GenerateAllCodeFiles(string? textDir = null, string? codeDir = null)
         {
-            textDir ??= DataTableTextPath;
-            codeDir ??= DataTableCodePath;
+            textDir ??= ResolvePath(DataTableTextPath);
+            codeDir ??= ResolvePath(DataTableCodePath);
             Directory.CreateDirectory(codeDir);
 
             foreach (string txtFile in Directory.GetFiles(textDir, "*.txt"))
@@ -139,7 +347,7 @@ namespace DataTableGenerator
         /// </summary>
         public static void GenerateCodeFile(string txtFile, string? codeDir = null)
         {
-            codeDir ??= DataTableCodePath;
+            codeDir ??= ResolvePath(DataTableCodePath);
             Directory.CreateDirectory(codeDir);
 
             string tableName = Path.GetFileNameWithoutExtension(txtFile);
@@ -307,7 +515,7 @@ namespace {CodeNamespace}
                 // Binary parsing
                 if (isId)
                 {
-                    parseBinary.AppendLine($"            Id = reader.Read7BitEncodedInt();");
+                    parseBinary.AppendLine($"            Id = reader.Read7BitEncodedInt32();");
                 }
                 else if (!isNumbered)
                 {
@@ -363,11 +571,11 @@ namespace {CodeNamespace}
         {
             return keyword switch
             {
-                "int" => "reader.Read7BitEncodedInt()",
+                "int" => "reader.Read7BitEncodedInt32()",
                 "long" => "reader.Read7BitEncodedInt64()",
                 "short" => "reader.ReadInt16()",
                 "ushort" => "reader.ReadUInt16()",
-                "uint" => "(uint)reader.Read7BitEncodedInt()",
+                "uint" => "(uint)reader.Read7BitEncodedInt32()",
                 "ulong" => "(ulong)reader.Read7BitEncodedInt64()",
                 "byte" => "reader.ReadByte()",
                 "sbyte" => "reader.ReadSByte()",
@@ -488,6 +696,16 @@ namespace {CodeNamespace}
             }
 
             return col - 1; // 0-based
+        }
+
+        private static string ResolvePath(string relativePath)
+        {
+            if (Path.IsPathRooted(relativePath))
+            {
+                return relativePath;
+            }
+
+            return Path.GetFullPath(Path.Combine(ProjectRoot, relativePath));
         }
     }
 }
