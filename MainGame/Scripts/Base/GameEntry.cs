@@ -16,6 +16,9 @@ namespace GameMain
         {
             InitBuiltinComponents();
             InitCustomComponents();
+
+            // 所有 GameFrameworkComponent 已在子节点 _Ready 中注册完毕，此处启动流程 FSM。
+            Procedure?.StartProcedures();
         }
     }
 }

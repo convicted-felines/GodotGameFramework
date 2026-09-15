@@ -6,6 +6,7 @@
 using GameFramework;
 using GameFramework.Fsm;
 using GameFramework.Procedure;
+using GodotGameFramework;
 
 namespace GameMain
 {
@@ -35,6 +36,7 @@ namespace GameMain
 
             if (m_PreloadDone)
             {
+                procedureOwner.SetData<VarInt32>("NextSceneId", ProcedureChangeScene.MenuSceneId);
                 ChangeState<ProcedureChangeScene>(procedureOwner);
             }
         }

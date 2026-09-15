@@ -1,58 +1,104 @@
 [gd_scene format=3 uid="uid://ds73k2es8joda"]
 
-[ext_resource type="Script" uid="uid://djxwx0g31xj65" path="res://GodotGameFramework/Base/BaseComponent.cs" id="1_syaif"]
-[ext_resource type="Script" uid="uid://5fqdlcp863o1" path="res://GodotGameFramework/Event/EventComponent.cs" id="2_lkeb4"]
-[ext_resource type="Script" uid="uid://c0mspmne23oa" path="res://GodotGameFramework/Config/ConfigComponent.cs" id="2_wuog5"]
-[ext_resource type="Script" uid="uid://cl4lb1kqfjvag" path="res://GodotGameFramework/Procedure/ProcedureComponent.cs" id="3_2kaif"]
-[ext_resource type="Script" uid="uid://dtj3ietqtpn7p" path="res://GodotGameFramework/FileSystem/FileSystemComponent.cs" id="4_5ehnu"]
-[ext_resource type="Script" uid="uid://bsaf4euiy5utm" path="res://GodotGameFramework/Entity/EntityComponent.cs" id="4_ttdra"]
-[ext_resource type="Script" uid="uid://vw8rdmftwexa" path="res://GodotGameFramework/UI/UIComponent.cs" id="5_5dcsp"]
-[ext_resource type="Script" uid="uid://bald25kada5re" path="res://GodotGameFramework/Entity/EntityGroupConfig.cs" id="6_5ehnu"]
-[ext_resource type="Script" uid="uid://b38wkfr4xwo5" path="res://GodotGameFramework/DataTable/DataTableComponent.cs" id="6_lkeb4"]
-[ext_resource type="Script" uid="uid://bpp2brj3r1qbl" path="res://GodotGameFramework/Resource/ResourceComponent.cs" id="9_5xj71"]
-[ext_resource type="Script" uid="uid://dst66iclrgixy" path="res://GodotGameFramework/Setting/SettingComponent.cs" id="10_mvr3t"]
+[ext_resource type="Script" uid="uid://d2216t1dcrdlx" path="res://GameMain/Scripts/Base/GameEntry.cs" id="1_game_entry"]
+[ext_resource type="Script" uid="uid://djxwx0g31xj65" path="res://GodotGameFramework/Base/BaseComponent.cs" id="2_base"]
+[ext_resource type="Script" uid="uid://bj5gh0v6a3a" path="res://GodotGameFramework/ReferencePool/ReferencePoolComponent.cs" id="3_ref_pool"]
+[ext_resource type="Script" uid="uid://chm6no63qcsmc" path="res://GodotGameFramework/ObjectPool/ObjectPoolComponent.cs" id="4_obj_pool"]
+[ext_resource type="Script" uid="uid://5fqdlcp863o1" path="res://GodotGameFramework/Event/EventComponent.cs" id="5_event"]
+[ext_resource type="Script" uid="uid://bpp2brj3r1qbl" path="res://GodotGameFramework/Resource/ResourceComponent.cs" id="6_resource"]
+[ext_resource type="Script" uid="uid://c0mspmne23oa" path="res://GodotGameFramework/Config/ConfigComponent.cs" id="7_config"]
+[ext_resource type="Script" uid="uid://dst66iclrgixy" path="res://GodotGameFramework/Setting/SettingComponent.cs" id="8_setting"]
+[ext_resource type="Script" uid="uid://dtj3ietqtpn7p" path="res://GodotGameFramework/FileSystem/FileSystemComponent.cs" id="9_filesystem"]
+[ext_resource type="Script" uid="uid://b38wkfr4xwo5" path="res://GodotGameFramework/DataTable/DataTableComponent.cs" id="10_datatable"]
+[ext_resource type="Script" uid="uid://bxehb5304eeh1" path="res://GodotGameFramework/Localization/LocalizationComponent.cs" id="11_localization"]
+[ext_resource type="Script" uid="uid://bsaf4euiy5utm" path="res://GodotGameFramework/Entity/EntityComponent.cs" id="12_entity"]
+[ext_resource type="Script" uid="uid://bald25kada5re" path="res://GodotGameFramework/Entity/EntityGroupConfig.cs" id="13_entity_group"]
+[ext_resource type="Script" uid="uid://vw8rdmftwexa" path="res://GodotGameFramework/UI/UIComponent.cs" id="14_ui"]
+[ext_resource type="Script" uid="uid://csq37u51ymsoi" path="res://GodotGameFramework/Sound/SoundComponent.cs" id="15_sound"]
+[ext_resource type="Script" uid="uid://cbfwuo2bupsks" path="res://GodotGameFramework/Scene/SceneComponent.cs" id="16_scene"]
+[ext_resource type="Script" uid="uid://dyuuar0jv8by" path="res://GodotGameFramework/Network/NetworkComponent.cs" id="17_network"]
+[ext_resource type="Script" uid="uid://b3cp1yiw6isbi" path="res://GodotGameFramework/Download/DownloadComponent.cs" id="18_download"]
+[ext_resource type="Script" uid="uid://br0x15gibqqeb" path="res://GodotGameFramework/WebRequest/WebRequestComponent.cs" id="19_webrequest"]
+[ext_resource type="Script" uid="uid://cl4lb1kqfjvag" path="res://GodotGameFramework/Procedure/ProcedureComponent.cs" id="20_procedure"]
 
-[sub_resource type="Resource" id="Resource_5xj71"]
-script = ExtResource("6_5ehnu")
+[sub_resource type="Resource" id="Resource_entity_default"]
+script = ExtResource("13_entity_group")
 Name = "Default"
 metadata/_custom_type_script = "uid://bald25kada5re"
 
-[sub_resource type="Resource" id="Resource_mvr3t"]
-script = ExtResource("6_5ehnu")
+[sub_resource type="Resource" id="Resource_entity_character"]
+script = ExtResource("13_entity_group")
 Name = "Character"
 metadata/_custom_type_script = "uid://bald25kada5re"
 
 [node name="GameEntry" type="Node3D" unique_id=1007060803]
+script = ExtResource("1_game_entry")
+
+[node name="SceneRoot" type="Node3D" parent="." unique_id=2106382739]
 
 [node name="GameFramework" type="Node" parent="." unique_id=1206382738]
 
 [node name="BaseComponent" type="Node" parent="GameFramework" unique_id=134997338]
-script = ExtResource("1_syaif")
+script = ExtResource("2_base")
 
-[node name="ConfigComponent" type="Node" parent="GameFramework" unique_id=143604383]
-script = ExtResource("2_wuog5")
+[node name="ReferencePoolComponent" type="Node" parent="GameFramework" unique_id=134997339]
+script = ExtResource("3_ref_pool")
+
+[node name="ObjectPoolComponent" type="Node" parent="GameFramework" unique_id=134997340]
+script = ExtResource("4_obj_pool")
 
 [node name="EventComponent" type="Node" parent="GameFramework" unique_id=410933346]
-script = ExtResource("2_lkeb4")
-
-[node name="FileSystemConponent" type="Node" parent="GameFramework" unique_id=177277223]
-script = ExtResource("4_5ehnu")
-
-[node name="EntityComponent" type="Node" parent="GameFramework" unique_id=1405598650]
-script = ExtResource("4_ttdra")
-EntityGroups = [SubResource("Resource_5xj71"), SubResource("Resource_mvr3t")]
-
-[node name="UIComponent" type="Node" parent="GameFramework" unique_id=1461927318]
-script = ExtResource("5_5dcsp")
-
-[node name="DataTableComponent" type="Node" parent="GameFramework" unique_id=1732410837]
-script = ExtResource("6_lkeb4")
-
-[node name="ProcedureComponent" type="Node" parent="GameFramework" unique_id=1843352324]
-script = ExtResource("3_2kaif")
+script = ExtResource("5_event")
 
 [node name="ResourceComponent" type="Node" parent="GameFramework" unique_id=539364055]
-script = ExtResource("9_5xj71")
+script = ExtResource("6_resource")
+SceneRootPath = NodePath("../../SceneRoot")
+
+[node name="ConfigComponent" type="Node" parent="GameFramework" unique_id=143604383]
+script = ExtResource("7_config")
 
 [node name="SettingComponent" type="Node" parent="GameFramework" unique_id=1959219470]
-script = ExtResource("10_mvr3t")
+script = ExtResource("8_setting")
+
+[node name="FileSystemComponent" type="Node" parent="GameFramework" unique_id=177277223]
+script = ExtResource("9_filesystem")
+
+[node name="DataTableComponent" type="Node" parent="GameFramework" unique_id=1732410837]
+script = ExtResource("10_datatable")
+
+[node name="LocalizationComponent" type="Node" parent="GameFramework" unique_id=1732410838]
+script = ExtResource("11_localization")
+
+[node name="EntityComponent" type="Node" parent="GameFramework" unique_id=1405598650]
+script = ExtResource("12_entity")
+EntityGroups = [SubResource("Resource_entity_default"), SubResource("Resource_entity_character")]
+
+[node name="UIComponent" type="Node" parent="GameFramework" unique_id=1461927318]
+script = ExtResource("14_ui")
+UIGroupNames = PackedStringArray("Background", "Common", "Dialog", "Guide", "Tip")
+UIGroupDepths = PackedInt32Array(0, 1, 2, 3, 4)
+
+[node name="SoundComponent" type="Node" parent="GameFramework" unique_id=1461927319]
+script = ExtResource("15_sound")
+SoundGroupNames = PackedStringArray("Music", "Sound", "UISound")
+SoundGroupAgentCounts = PackedInt32Array(1, 4, 4)
+SoundGroupAvoidBeingReplaced = PackedInt32Array(0, 0, 0)
+SoundGroupMutes = PackedInt32Array(0, 0, 0)
+SoundGroupVolumes = PackedFloat32Array(0.5, 1, 1)
+
+[node name="SceneComponent" type="Node" parent="GameFramework" unique_id=1461927320]
+script = ExtResource("16_scene")
+
+[node name="NetworkComponent" type="Node" parent="GameFramework" unique_id=1461927321]
+script = ExtResource("17_network")
+
+[node name="DownloadComponent" type="Node" parent="GameFramework" unique_id=1461927322]
+script = ExtResource("18_download")
+
+[node name="WebRequestComponent" type="Node" parent="GameFramework" unique_id=1461927323]
+script = ExtResource("19_webrequest")
+
+[node name="ProcedureComponent" type="Node" parent="GameFramework" unique_id=1843352324]
+script = ExtResource("20_procedure")
+m_AvailableProcedureTypeNames = PackedStringArray("GameMain.ProcedureLaunch", "GameMain.ProcedureSplash", "GameMain.ProcedurePreload", "GameMain.ProcedureChangeScene", "GameMain.ProcedureMenu", "GameMain.ProcedureMain")
+m_EntranceProcedureTypeName = "GameMain.ProcedureLaunch"

@@ -43,14 +43,22 @@ namespace GameMain
                 GameEntry.Scene.UnloadScene(sceneName);
             }
 
-            // 读取目标场景 ID
-            int nextSceneId = procedureOwner.GetData<VarInt32>("NextSceneId");
+            // 读取目标场景 ID（未设置时默认进入菜单场景）
+            VarInt32 nextSceneIdVar = procedureOwner.GetData<VarInt32>("NextSceneId");
+            int nextSceneId = nextSceneIdVar != null ? nextSceneIdVar.Value : MenuSceneId;
             m_ChangeToMenu = nextSceneId == MenuSceneId;
 
             // TODO: 从数据表中查找场景资源路径，此处先用占位路径
             string nextSceneAssetName = GetSceneAssetName(nextSceneId);
             if (string.IsNullOrEmpty(nextSceneAssetName))
             {
+                if (m_ChangeToMenu)
+                {
+                    GameFrameworkLog.Warning("ProcedureChangeScene: no menu scene configured, skip load and enter menu procedure.");
+                    m_IsChangeSceneComplete = true;
+                    return;
+                }
+
                 GameFrameworkLog.Error("ProcedureChangeScene: scene asset name is invalid for id '{0}'.", nextSceneId);
                 return;
             }

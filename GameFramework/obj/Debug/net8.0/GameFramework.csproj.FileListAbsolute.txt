@@ -8,3 +8,13 @@ D:\GodotProject\framework\GameFramework\obj\Debug\net8.0\refint\GameFramework.dl
 D:\GodotProject\framework\GameFramework\obj\Debug\net8.0\GameFramework.pdb
 D:\GodotProject\framework\GameFramework\obj\Debug\net8.0\ref\GameFramework.dll
 D:\GodotProject\framework\GameFramework\obj\Debug\net8.0\GameFramework.sourcelink.json
+D:\GodotProject\GodotFramework\GameFramework\bin\Debug\net8.0\GameFramework.deps.json
+D:\GodotProject\GodotFramework\GameFramework\bin\Debug\net8.0\GameFramework.dll
+D:\GodotProject\GodotFramework\GameFramework\bin\Debug\net8.0\GameFramework.pdb
+D:\GodotProject\GodotFramework\GameFramework\obj\Debug\net8.0\GameFramework.GeneratedMSBuildEditorConfig.editorconfig
+D:\GodotProject\GodotFramework\GameFramework\obj\Debug\net8.0\GameFramework.csproj.CoreCompileInputs.cache
+D:\GodotProject\GodotFramework\GameFramework\obj\Debug\net8.0\GameFramework.sourcelink.json
+D:\GodotProject\GodotFramework\GameFramework\obj\Debug\net8.0\GameFramework.dll
+D:\GodotProject\GodotFramework\GameFramework\obj\Debug\net8.0\refint\GameFramework.dll
+D:\GodotProject\GodotFramework\GameFramework\obj\Debug\net8.0\GameFramework.pdb
+D:\GodotProject\GodotFramework\GameFramework\obj\Debug\net8.0\ref\GameFramework.dll

@@ -19,7 +19,7 @@ namespace GodotGameFramework
 
         public static implicit operator int(VarInt32 value)
         {
-            return value.Value;
+            return value?.Value ?? 0;
         }
     }
 }
